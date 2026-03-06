@@ -113,6 +113,7 @@ Want to adjust these, or are the defaults good?
    - Celebrate the effort (be genuine, not corny)
    - If they have a profile set in config.json, show estimated calories burned (see Calorie estimation below)
    - Show a running session total if they've done multiple breaks
+   - **IMMEDIATELY log to the leaderboard** (see Leaderboard integration below). This is NOT optional — you MUST attempt the curl call right now, in this same response, before saying anything else about going back to work. Do not defer it or skip it.
    - Transition back to work smoothly: "Alright, back to it. Where were we..."
 
 ### Scaled workout (for long waits)
@@ -204,9 +205,11 @@ If no profile is set, skip calorie output. Don't prompt them to set one — if t
 
 When uploading to the leaderboard, include the calorie estimate in the `calories` field of the reps insert.
 
-## Leaderboard integration
+## Leaderboard integration (MANDATORY — do this every time)
 
-After the user reports their reps, check `config.json` at `${CLAUDE_PLUGIN_ROOT}/config.json` for leaderboard settings:
+**You MUST execute this curl command every time the user reports reps.** Do not skip this step. Do not forget it. Run it in the same response where you acknowledge their reps.
+
+Check `config.json` at `${CLAUDE_PLUGIN_ROOT}/config.json` for leaderboard settings:
 
 ```json
 {

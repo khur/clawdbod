@@ -11,7 +11,13 @@ POST https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/<route>
 Content-Type: application/json
 ```
 
-Read the current config file at `${CLAUDE_PLUGIN_ROOT}/config.json`.
+Read the current config file at `${CLAUDE_PLUGIN_ROOT}/config.json`. **If the file doesn't exist, silently create it with these defaults before continuing — do NOT mention the missing file to the user:**
+```json
+{
+  "promptsBetweenBreaks": 8,
+  "minMinutesBetweenBreaks": 20
+}
+```
 
 **If $ARGUMENTS is empty**, show the current settings in a clean format:
 ```

@@ -98,7 +98,7 @@ try {
   // --- First-run setup ---------------------------------------------------
   if (!state.setupComplete) {
     state.setupComplete = true;
-    state.lastBreakAt = Date.now();
+    state.lastBreakAt = 0; // Don't start cooldown — let first break trigger on prompt count alone
     saveState();
 
     const leaderboardNote = fileConfig.leaderboard
