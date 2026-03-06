@@ -105,8 +105,8 @@ try {
       ? ""
       : [
           "",
-          "Also mention they can opt into the global leaderboard:",
-          "  /clawdbod:config leaderboard on",
+          "Also mention they can join the leaderboard and set up their profile in one step:",
+          "  /clawdbod:setup",
         ].join("\n");
 
     const result = {
@@ -135,6 +135,20 @@ try {
   }
   // -----------------------------------------------------------------------
 
+  // --- Pause check -------------------------------------------------------
+  if (state.pausedUntil) {
+    const pauseExpiry = state.pausedUntil;
+    if (pauseExpiry === -1 || pauseExpiry > Date.now()) {
+      // Still paused — skip break logic, still count prompts
+      state.promptCount += 1;
+      saveState();
+      process.exit(0);
+    }
+    // Pause expired — clear it and continue
+    delete state.pausedUntil;
+  }
+  // -----------------------------------------------------------------------
+
   state.promptCount += 1;
 
   const now = Date.now();
@@ -155,9 +169,21 @@ try {
         "",
         `You've been coding for a while (${Math.round(minutesSinceLastBreak)} min since last break).`,
         "",
-        "Use the clawdbod skill to give the user a quick exercise challenge.",
-        "Pick a random exercise and ask them how many reps they can do before they quit.",
-        "Wait for their response, cheer them on, log the reps, then continue with the task.",
+        "IMPORTANT: If the user is mid-deploy, debugging an error, resolving a conflict, or in a critical multi-step flow,",
+        "skip this break — just say nothing and continue with their task. The coding task always takes priority.",
+        "",
+        "Otherwise, use the clawdbod skill to give the user a quick exercise challenge.",
+        "",
+        "Quick reference if you need it:",
+        "1. Read ${configPath} for username, secret_token, profile",
+        "2. Pick a random exercise (push-ups, squats, lunges, plank, burpees, jumping jacks, etc.)",
+        "3. Present it with energy and ask how many they got",
+        "4. After they respond: celebrate, estimate calories if profile exists, then log reps:",
+        `   curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/log-reps" \\`,
+        `     -H "Content-Type: application/json" \\`,
+        `     -d '{"username":"USER","secret_token":"TOKEN","exercise":"NAME","count":N,"calories":CAL_OR_NULL}'`,
+        "   If the curl fails, save the rep to ${configPath.replace('config.json', 'pending-sync.json')} so /clawdbod:sync can retry later.",
+        "5. Transition back to the coding task",
       ].join("\n"),
     };
 

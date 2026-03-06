@@ -5,13 +5,7 @@ argument_description: Optional — "prompts 12", "minutes 30", "leaderboard on/o
 
 # ClawdBod Config
 
-All API writes go through the edge function at:
-```
-POST https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/<route>
-Content-Type: application/json
-```
-
-Read the current config file at `${CLAUDE_PLUGIN_ROOT}/config.json`. **If the file doesn't exist, silently create it with these defaults before continuing — do NOT mention the missing file to the user:**
+**First, read `${CLAUDE_PLUGIN_ROOT}/config.json`.** If the file doesn't exist, silently create it with these defaults before continuing — do NOT mention the missing file to the user:
 ```json
 {
   "promptsBetweenBreaks": 8,
@@ -19,96 +13,106 @@ Read the current config file at `${CLAUDE_PLUGIN_ROOT}/config.json`. **If the fi
 }
 ```
 
-**If $ARGUMENTS is empty**, show the current settings in a clean format:
+All API writes go through:
+```
+POST https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/<route>
+Content-Type: application/json
+```
+
+**IMPORTANT: When writing config.json, always read the existing file first and merge your changes into it. Never overwrite the whole file — preserve all existing fields (username, secret_token, profile, etc.).**
+
+---
+
+## If $ARGUMENTS is empty — show current settings
+
 ```
 ClawdBod Settings:
-  Break every N prompts:    [value]
-  Min minutes between:      [value]
-  Leaderboard:              [on/off]
-  Username:                 [value or "not set"]
-  Profile:                  [set/not set]
+  Break every N prompts:    8
+  Min minutes between:      20
+  Leaderboard:              on
+  Username:                 khur
+  Profile:                  set (6'4", 265 lbs, 40, male)
 ```
-If profile is set, also show: height, weight, age, gender.
-Then ask if they'd like to change anything.
 
-**If $ARGUMENTS contains "prompts"** followed by a number, update `promptsBetweenBreaks` in the config file to that number.
+If profile is set, show the details. Then ask if they'd like to change anything.
 
-**If $ARGUMENTS contains "minutes"** followed by a number, update `minMinutesBetweenBreaks` in the config file to that number.
+---
 
-**If $ARGUMENTS contains "leaderboard on"**, walk the user through opting in:
-1. Ask them to pick a username (2-24 characters, letters, numbers, and underscores only)
-2. Register via the edge function:
+## If $ARGUMENTS contains "prompts" + a number
+
+Update `promptsBetweenBreaks` in config.json. Confirm the change.
+
+## If $ARGUMENTS contains "minutes" + a number
+
+Update `minMinutesBetweenBreaks` in config.json. Confirm the change.
+
+---
+
+## If $ARGUMENTS contains "leaderboard on"
+
+1. Ask them to pick a username (2-24 chars, letters/numbers/underscores)
+2. Register:
    ```bash
    curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/register" \
      -H "Content-Type: application/json" \
      -d '{"username":"USERNAME"}'
    ```
-   - If it returns 201 with `id`, `username`, and `secret_token` — success!
-   - If it returns 409 — username is taken, ask them to pick another
-   - If it returns 429 — too many registrations, try again later
-3. Save to config.json:
-   ```json
-   {
-     "leaderboard": true,
-     "username": "their_name",
-     "secret_token": "the-uuid-from-response"
-   }
-   ```
-   **IMPORTANT:** The `secret_token` is the user's identity proof. It must be saved locally and sent with every write request. Without it, they cannot log reps or update their profile.
-4. If they already have a username in config.json (re-opting in after opt-out), use the opt-in endpoint instead:
+   - 201 → success. Save `username`, `secret_token` (from response), and `"leaderboard": true` to config.json.
+   - 409 → username taken, ask for another
+   - 429 → rate limited, try later
+3. If they already have username + secret_token in config.json (re-opting in), use opt-in instead:
    ```bash
    curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/opt-in" \
      -H "Content-Type: application/json" \
      -d '{"username":"USERNAME","secret_token":"TOKEN"}'
    ```
-5. Confirm: "You're on the leaderboard as **username**. Your reps will be tracked after each break."
+4. Confirm: "You're on the leaderboard as **username**."
 
-**If $ARGUMENTS contains "leaderboard off"**:
-1. Read the username and secret_token from config.json
-2. Opt out via the edge function:
+## If $ARGUMENTS contains "leaderboard off"
+
+1. Read username and secret_token from config.json
+2. Opt out:
    ```bash
    curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/opt-out" \
      -H "Content-Type: application/json" \
      -d '{"username":"USERNAME","secret_token":"TOKEN"}'
    ```
 3. Set `"leaderboard": false` in config.json (keep username and secret_token for re-opting in)
-4. Confirm: "You're off the leaderboard. Your data is hidden. Run `/clawdbod:config leaderboard on` anytime to come back."
+4. Confirm: "You're off the leaderboard. Run `/clawdbod:config leaderboard on` anytime to come back."
 
-**If $ARGUMENTS contains "profile"**, walk the user through setting their profile:
-1. Ask for the following (all optional — they can skip any by saying "skip"):
-   - Height (feet and inches, e.g. "5'10" or "70 inches")
+---
+
+## If $ARGUMENTS contains "profile"
+
+1. Ask for all at once (all optional — they can skip any):
+   - Height (like 5'10 or 70 inches)
    - Weight (lbs)
    - Age
    - Gender (male/female/other)
-2. Save to config.json as:
+2. Save to config.json as a `profile` object:
    ```json
-   {
-     "profile": {
-       "height_inches": 70,
-       "weight_lbs": 175,
-       "age": 30,
-       "gender": "male"
-     }
-   }
+   { "profile": { "height_inches": 70, "weight_lbs": 175, "age": 30, "gender": "male" } }
    ```
-3. If they're on the leaderboard (have username and secret_token), also sync to Supabase:
+   Convert feet/inches to total inches (5'10 = 70).
+3. If on the leaderboard (have username + secret_token), sync to Supabase:
    ```bash
    curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/update-profile" \
      -H "Content-Type: application/json" \
      -d '{"username":"USERNAME","secret_token":"TOKEN","height_inches":70,"weight_lbs":175,"age":30,"gender":"male"}'
    ```
-4. Confirm what was saved. Mention that this enables calorie estimates after each break.
-5. Profile data is never shown on the leaderboard — it's only used for calorie math.
+4. Confirm what was saved. Mention this enables calorie estimates. Profile data is never shown publicly.
 
-**If $ARGUMENTS contains "reset"**, reset the config file to defaults:
-```json
-{
-  "promptsBetweenBreaks": 8,
-  "minMinutesBetweenBreaks": 20
-}
-```
-This removes leaderboard settings too. If they were opted in, opt them out first using the opt-out endpoint before resetting. Warn them that their secret_token will be lost and they'll need to create a new account to rejoin.
+---
 
-After any change, confirm what was updated and show the new settings.
+## If $ARGUMENTS contains "reset"
 
-Keep it brief — one exchange, no lectures.
+1. If they have username + secret_token, opt them out first using the opt-out endpoint.
+2. Warn them: secret_token will be lost — they'll need a new account to rejoin.
+3. If they confirm, overwrite config.json with defaults only:
+   ```json
+   { "promptsBetweenBreaks": 8, "minMinutesBetweenBreaks": 20 }
+   ```
+
+---
+
+After any change, confirm what was updated and show the new settings. Keep it brief.

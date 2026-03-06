@@ -27,10 +27,47 @@ claude --plugin-dir ./clawdbod
 
 - **Auto-breaks** — After every ~8 prompts (and at least 20 min apart), Claude pauses to give you a quick exercise challenge
 - **Interactive** — Asks you to do as many reps as you can, you report back, it logs and cheers you on
-- **On-demand** — Run `/clawdbod:fitness` anytime for a quick challenge, or `/clawdbod:fitness hiit 5` / `/clawdbod:fitness hiit 10` for a timed workout during long waits
-- **Session tracking** — Run `/clawdbod:fitness summary` to see your totals
-- **Configurable** — Run `/clawdbod:config` to view or change settings on the fly
-- **Global leaderboard** — Opt in with `/clawdbod:config leaderboard on`, pick a username, and compete with other devs worldwide. View rankings with `/clawdbod:leaderboard`
+- **On-demand** — Run `/clawdbod:fitness` anytime, or `/clawdbod:fitness hiit 5` / `hiit 10` for timed workouts
+- **Global leaderboard** — Opt in to compete with other devs worldwide
+- **Personal history** — Track your reps, calories, and progress over time
+- **Pause/resume** — Mute breaks for deep focus, calls, or demos
+- **Offline resilience** — Failed uploads are saved locally and retried with `/clawdbod:sync`
+- **Calorie tracking** — Set up your profile for estimated calorie burn using MET values
+- **Configurable** — Adjust break frequency, cooldown, leaderboard, and profile on the fly
+
+## Quick Start
+
+```
+/clawdbod:setup          # pick a username, join the leaderboard, set up your profile
+/clawdbod:help           # see all commands
+```
+
+## Commands
+
+| Command | Description |
+|---|---|
+| `/clawdbod:fitness` | Quick random exercise challenge |
+| `/clawdbod:fitness hiit 5` | 5-minute HIIT workout |
+| `/clawdbod:fitness hiit 10` | 10-minute HIIT workout |
+| `/clawdbod:fitness summary` | Session exercise summary |
+| `/clawdbod:setup` | Guided onboarding — username, leaderboard, profile |
+| `/clawdbod:config` | View/change settings |
+| `/clawdbod:config profile` | Set height, weight, age for calorie tracking |
+| `/clawdbod:config prompts 12` | Change break frequency |
+| `/clawdbod:config minutes 30` | Change cooldown between breaks |
+| `/clawdbod:config leaderboard on/off` | Enable/disable leaderboard |
+| `/clawdbod:leaderboard` | All-time rankings |
+| `/clawdbod:leaderboard weekly` | This week's rankings |
+| `/clawdbod:leaderboard pushups` | Rankings for a specific exercise |
+| `/clawdbod:leaderboard pr pushups` | Personal best rankings |
+| `/clawdbod:leaderboard exercises` | List all tracked exercises |
+| `/clawdbod:history` | Your recent reps and stats |
+| `/clawdbod:pause` | Pause breaks indefinitely |
+| `/clawdbod:pause 30` | Pause breaks for 30 minutes |
+| `/clawdbod:resume` | Resume breaks after pausing |
+| `/clawdbod:sync` | Retry any reps that failed to upload |
+| `/clawdbod:status` | Health check — API, auth, config |
+| `/clawdbod:help` | Command reference |
 
 ## Configuration
 
@@ -64,14 +101,10 @@ CLAWDBOD_PROMPTS=4 CLAWDBOD_MINUTES=10 claude
 
 Compete with other devs who use ClawdBod. Fully opt-in — your data only appears while you're opted in. Opt out and you disappear from the board instantly.
 
+The fastest way to get on the board:
+
 ```
-/clawdbod:config leaderboard on     # pick a unique username, start tracking
-/clawdbod:config leaderboard off    # disappear from the board
-/clawdbod:leaderboard               # all-time overall rankings
-/clawdbod:leaderboard weekly        # this week's rankings
-/clawdbod:leaderboard pushups       # total reps leaderboard for push-ups
-/clawdbod:leaderboard pr squats     # best single set leaderboard for squats
-/clawdbod:leaderboard exercises     # list all tracked exercises
+/clawdbod:setup
 ```
 
 Only your username, exercise name, rep count, estimated calories, and timestamp are stored. Profile data (height/weight/age/gender) is used for calorie math but never displayed on the leaderboard.
@@ -91,13 +124,20 @@ You'll be asked for height, weight, age, and gender — all optional, skip any y
 ```
 clawdbod/
 ├── .claude-plugin/
-│   └── plugin.json
+│   ├── plugin.json
+│   └── marketplace.json
 ├── commands/
 │   ├── config.md
 │   ├── fitness.md
-│   └── leaderboard.md
+│   ├── help.md
+│   ├── history.md
+│   ├── leaderboard.md
+│   ├── pause.md
+│   ├── resume.md
+│   ├── setup.md
+│   ├── status.md
+│   └── sync.md
 ├── hooks/
-│   ├── hooks.json
 │   └── stop-fitness-check.mjs
 ├── skills/
 │   └── clawdbod/
@@ -110,11 +150,18 @@ clawdbod/
 
 | Component | Type | Description |
 |---|---|---|
-| `hooks/stop-fitness-check.mjs` | Stop Hook | Tracks prompts and time, triggers breaks |
-| `skills/clawdbod/SKILL.md` | Skill | Exercise coach persona and workout generator |
-| `commands/fitness.md` | Command | `/clawdbod:fitness` slash command for on-demand breaks |
-| `commands/config.md` | Command | `/clawdbod:config` to view or change settings |
-| `commands/leaderboard.md` | Command | `/clawdbod:leaderboard` to view global rankings |
+| `hooks/stop-fitness-check.mjs` | Stop Hook | Tracks prompts and time, triggers breaks, respects pause state |
+| `skills/clawdbod/SKILL.md` | Skill | Exercise coach persona, workout generator, calorie estimation |
+| `commands/fitness.md` | Command | On-demand exercise breaks and HIIT workouts |
+| `commands/setup.md` | Command | Guided onboarding flow |
+| `commands/config.md` | Command | View and change settings |
+| `commands/leaderboard.md` | Command | Global rankings |
+| `commands/history.md` | Command | Personal exercise history and stats |
+| `commands/pause.md` | Command | Temporarily mute breaks |
+| `commands/resume.md` | Command | Resume breaks after pausing |
+| `commands/sync.md` | Command | Retry failed leaderboard uploads |
+| `commands/status.md` | Command | Diagnostic health check |
+| `commands/help.md` | Command | Command reference |
 
 ## License
 
