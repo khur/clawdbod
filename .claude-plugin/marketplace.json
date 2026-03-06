@@ -1,19 +1,19 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "fgalabs-clawdbod",
+  "description": "ClawdBod — fitness breaks for Claude Code. Stay active while you ship.",
   "owner": {
     "name": "FGA Labs"
-  },
-  "metadata": {
-    "description": "ClawdBod — fitness breaks for Claude Code. Stay active while you ship."
   },
   "plugins": [
     {
       "name": "clawdbod",
-      "source": ".",
       "description": "Stay active while coding. Injects fitness breaks into your Claude Code sessions with a global leaderboard.",
-      "version": "1.0.0",
-      "category": "wellness",
-      "tags": ["fitness", "health", "exercise", "breaks", "leaderboard", "productivity"]
+      "author": {
+        "name": "FGA Labs"
+      },
+      "source": "./",
+      "category": "wellness"
     }
   ]
 }
