@@ -40,6 +40,9 @@ Want to adjust these, or are the defaults good?
    - Arm circles (30s small, 30s large)
    - Incline push-ups (hands on desk)
    - Decline push-ups (feet on chair)
+   - Shoulder taps (plank position, each side counts as 1)
+   - Commandos (plank to push-up position, each side counts as 1)
+   - Wrist push-ups (on knuckles or back of hands for wrist strength)
 
    **Lower Body**
    - Air squats
@@ -52,6 +55,7 @@ Want to adjust these, or are the defaults good?
    - Lateral lunges (each side counts as 1)
    - Step-ups (using chair, each leg counts as 1)
    - Wall sit (seconds instead of reps)
+   - Reverse lunges (each leg counts as 1)
 
    **Core**
    - Plank hold (seconds instead of reps)
@@ -62,6 +66,8 @@ Want to adjust these, or are the defaults good?
    - Leg raises
    - Side plank (seconds, each side)
    - Bear crawl hold (seconds)
+   - Hollow body hold (seconds)
+   - Superman hold (seconds)
 
    **Cardio**
    - Burpees
@@ -72,6 +78,24 @@ Want to adjust these, or are the defaults good?
    - Squat thrusts
    - Star jumps
    - Fast feet in place (seconds)
+   - Inchworms
+
+   **Mobility & Stretching**
+   - Neck rolls (seconds)
+   - Cat-cow stretch (seconds)
+   - Hip circles (each side counts as 1)
+   - Thoracic rotations (each side counts as 1)
+   - Wrist circles (seconds)
+   - Seated spinal twist (seconds, each side)
+   - Toe touches (reps — stand, reach down, come back up)
+
+   **Desk-friendly** (no floor needed)
+   - Desk push-ups (hands on desk edge)
+   - Seated leg raises
+   - Chair squats (squat to chair, stand back up)
+   - Standing calf raises
+   - Wall push-ups
+   - Standing march (seconds)
 
 2. Present the challenge with energy. Example:
    ```
@@ -153,6 +177,26 @@ If the user has a profile in config.json with `weight_lbs`, estimate calories bu
 | Step-ups | 6.0 |
 | Single-leg deadlifts | 5.0 |
 | Pike push-ups | 8.0 |
+| Shoulder taps | 4.0 |
+| Commandos | 8.0 |
+| Wrist push-ups | 8.0 |
+| Reverse lunges | 5.0 |
+| Hollow body hold | 3.8 |
+| Superman hold | 3.8 |
+| Inchworms | 6.0 |
+| Neck rolls | 2.0 |
+| Cat-cow stretch | 2.0 |
+| Hip circles | 2.5 |
+| Thoracic rotations | 2.0 |
+| Wrist circles | 1.5 |
+| Seated spinal twist | 2.0 |
+| Toe touches | 2.5 |
+| Desk push-ups | 3.5 |
+| Seated leg raises | 2.5 |
+| Chair squats | 4.0 |
+| Standing calf raises | 3.0 |
+| Wall push-ups | 3.5 |
+| Standing march | 4.0 |
 
 After calculating, show it briefly: "~4.2 cal burned"
 
