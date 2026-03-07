@@ -1,7 +1,6 @@
 {
   "name": "clawdbod",
   "description": "Stay active while coding. Injects fitness breaks into your Claude Code sessions — micro-challenges between prompts and scaled workouts during long-running tasks. Opt into the global leaderboard to compete with other devs.",
-  "version": "1.2.0",
   "author": {
     "name": "FGA Labs"
   },
