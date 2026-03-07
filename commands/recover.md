@@ -42,7 +42,7 @@ curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/recov
 ```
 
 Handle responses:
-- **200** — Read existing config.json, merge in `username`, `secret_token` (from response), and `"leaderboard": true`, write it back. Move to Step 3.
+- **200** — Read existing config.json, merge in `username`, `secret_token` (from response), and `"leaderboard": true`. If the response includes a `profile` object (with any of `height_inches`, `weight_lbs`, `age`, `gender`), merge that into config.json as a `profile` object too. Write it back. Move to Step 3.
 - **401** — "That didn't match. Double-check your username and passphrase and try again."
 - **429** — "Too many attempts — account is temporarily locked. Try again in a few minutes."
 - Other errors — "Something went wrong. Try `/clawdbod:recover` again later."
@@ -54,9 +54,12 @@ You're back in as **username**! Config has been restored.
 
   Username:     username
   Leaderboard:  on
+  Profile:      set (5'10", 175 lbs, 30, male)
 
 Run /clawdbod:status to verify everything's working.
 ```
+
+If no profile was returned, show `Profile: not set (add with /clawdbod:config profile)`.
 
 ## UX rules
 
