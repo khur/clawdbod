@@ -16,63 +16,6 @@
     "leaderboard",
     "productivity"
   ],
-  "commands": [
-    {
-      "name": "fitness",
-      "description": "Quick exercise challenge, HIIT workout, or session summary.",
-      "source": "commands/fitness.md"
-    },
-    {
-      "name": "setup",
-      "description": "Get started — username, leaderboard, profile.",
-      "source": "commands/setup.md"
-    },
-    {
-      "name": "config",
-      "description": "View or change settings (profile, break frequency, cooldown).",
-      "source": "commands/config.md"
-    },
-    {
-      "name": "leaderboard",
-      "description": "View rankings — all-time, weekly, by exercise, or personal bests.",
-      "source": "commands/leaderboard.md"
-    },
-    {
-      "name": "pause",
-      "description": "Pause fitness breaks (indefinitely or for N minutes).",
-      "source": "commands/pause.md"
-    },
-    {
-      "name": "resume",
-      "description": "Resume fitness breaks after pausing.",
-      "source": "commands/resume.md"
-    },
-    {
-      "name": "history",
-      "description": "Your recent reps and stats.",
-      "source": "commands/history.md"
-    },
-    {
-      "name": "sync",
-      "description": "Retry uploading any reps that failed to sync to the leaderboard.",
-      "source": "commands/sync.md"
-    },
-    {
-      "name": "status",
-      "description": "Quick health check — verify setup, API, and leaderboard connection.",
-      "source": "commands/status.md"
-    },
-    {
-      "name": "help",
-      "description": "See all available ClawdBod commands.",
-      "source": "commands/help.md"
-    },
-    {
-      "name": "recover",
-      "description": "Recover your account using your username and recovery passphrase.",
-      "source": "commands/recover.md"
-    }
-  ],
   "hooks": {
     "Stop": [
       {
