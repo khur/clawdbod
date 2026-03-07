@@ -4,17 +4,31 @@ Stay active while you code. ClawdBod injects exercise breaks into your Claude Co
 
 ## Install
 
-### From the official marketplace
+```
+/plugin marketplace add khur/clawdbod
+/plugin install clawdbod
+/reload-plugins
+```
+
+Then run `/clawdbod:setup` to pick a username and join the leaderboard.
+
+### Updating
+
+To pull the latest version:
 
 ```
-/plugin install clawdbod@claude-plugins-official
+/plugin marketplace remove khur/clawdbod
+/plugin marketplace add khur/clawdbod
+/plugin install clawdbod
+/reload-plugins
 ```
 
-### From GitHub
+### Uninstalling
 
 ```
-/plugin marketplace add fgalabs/clawdbod
-/plugin install clawdbod@fgalabs-clawdbod
+/plugin uninstall clawdbod
+/plugin marketplace remove khur/clawdbod
+/reload-plugins
 ```
 
 ### Local (development)
@@ -67,6 +81,7 @@ claude --plugin-dir ./clawdbod
 | `/clawdbod:resume` | Resume breaks after pausing |
 | `/clawdbod:sync` | Retry any reps that failed to upload |
 | `/clawdbod:status` | Health check — API, auth, config |
+| `/clawdbod:recover` | Recover your account on a new machine |
 | `/clawdbod:help` | Command reference |
 
 ## Configuration
@@ -109,6 +124,22 @@ The fastest way to get on the board:
 
 Only your username, exercise name, rep count, estimated calories, and timestamp are stored. Profile data (height/weight/age/gender) is used for calorie math but never displayed on the leaderboard.
 
+## Account Recovery
+
+If you reinstall, switch machines, or lose your config, you can recover your account using the passphrase you set during setup:
+
+```
+/clawdbod:recover
+```
+
+You'll be asked for your username and passphrase. On success, your credentials and profile are restored automatically.
+
+If you didn't set a passphrase during setup, you can add one anytime:
+
+```
+/clawdbod:config passphrase
+```
+
 ## Profile & Calorie Tracking
 
 Optionally add your stats to get estimated calorie burn after each exercise:
@@ -135,6 +166,7 @@ clawdbod/
 │   ├── pause.md
 │   ├── resume.md
 │   ├── setup.md
+│   ├── recover.md
 │   ├── status.md
 │   └── sync.md
 ├── hooks/
@@ -161,6 +193,7 @@ clawdbod/
 | `commands/resume.md` | Command | Resume breaks after pausing |
 | `commands/sync.md` | Command | Retry failed leaderboard uploads |
 | `commands/status.md` | Command | Diagnostic health check |
+| `commands/recover.md` | Command | Account recovery with passphrase |
 | `commands/help.md` | Command | Command reference |
 
 ## License
