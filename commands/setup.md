@@ -32,6 +32,7 @@ You're already set up as **username** with profile and leaderboard enabled. Ever
   Username:     khur
   Leaderboard:  on
   Profile:      set (6'4", 265 lbs, 40, male)
+  Recovery:     passphrase set (or: not set — add one with /clawdbod:config passphrase)
   Breaks:       every 8 prompts (20 min cooldown)
 
 Need to change anything? Try /clawdbod:config
@@ -51,17 +52,31 @@ What do you want to go by?
 
 ### Step 2 — Register username
 
-Once they give you a username, register it:
+Once they give you a username, ask for a recovery passphrase:
+
+```
+Got it — **username** it is.
+
+One more thing: set a recovery passphrase so you can reclaim your account if you ever lose your config (reinstall, new machine, etc).
+
+Rules: at least 8 characters, anything you'll remember.
+
+What passphrase do you want? (or "skip" to skip — but you won't be able to recover your account later)
+```
+
+Once they provide a passphrase (or skip), register:
 
 ```bash
 curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/register" \
   -H "Content-Type: application/json" \
-  -d '{"username":"USERNAME"}'
+  -d '{"username":"USERNAME","passphrase":"PASSPHRASE_OR_OMIT_IF_SKIPPED"}'
 ```
 
+If they skipped, omit the `passphrase` field entirely.
+
 Handle responses:
-- **201** — Read existing config.json, merge in `username`, `secret_token` (from response), and `"leaderboard": true`, write it back. Move to Step 3.
-- **409** — "That one's taken — try another?"
+- **201** — Read existing config.json, merge in `username`, `secret_token` (from response), `"leaderboard": true`, and `"has_passphrase": true/false`, write it back. Move to Step 3.
+- **409** — "That one's taken — try another? Or if it's yours from before, run `/clawdbod:recover` to reclaim it."
 - **429** — "Too many signups right now, try again in a minute."
 - Other errors — "Something went wrong. Try `/clawdbod:setup` again later."
 
@@ -110,12 +125,14 @@ You're all set!
   Username:     muscle_dev
   Leaderboard:  on
   Profile:      set (5'10", 175 lbs, 30, male)
+  Recovery:     passphrase set
   Breaks:       every 8 prompts (20 min cooldown)
 
 Your reps get logged after every break. Check rankings with /clawdbod:leaderboard.
 ```
 
 If they skipped profile, show `Profile: not set (add later with /clawdbod:config profile)`.
+If they skipped passphrase, show `Recovery: not set (add later with /clawdbod:config passphrase)`.
 
 ## UX rules
 

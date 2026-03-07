@@ -67,6 +67,11 @@
       "name": "help",
       "description": "See all available ClawdBod commands.",
       "source": "commands/help.md"
+    },
+    {
+      "name": "recover",
+      "description": "Recover your account using your username and recovery passphrase.",
+      "source": "commands/recover.md"
     }
   ],
   "hooks": {

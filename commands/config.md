@@ -1,6 +1,6 @@
 ---
-description: View or change ClawdBod settings — break frequency, cooldown, leaderboard, profile, or reset.
-argument_description: Optional — "prompts 12", "minutes 30", "leaderboard on/off", "profile", "reset", or leave blank to view current settings.
+description: View or change ClawdBod settings — break frequency, cooldown, leaderboard, profile, passphrase, or reset.
+argument_description: Optional — "prompts 12", "minutes 30", "leaderboard on/off", "profile", "passphrase", "reset", or leave blank to view current settings.
 ---
 
 # ClawdBod Config
@@ -32,9 +32,10 @@ ClawdBod Settings:
   Leaderboard:              on
   Username:                 khur
   Profile:                  set (6'4", 265 lbs, 40, male)
+  Recovery passphrase:      set (or: not set — add with /clawdbod:config passphrase)
 ```
 
-If profile is set, show the details. Then ask if they'd like to change anything.
+If profile is set, show the details. Check `has_passphrase` in config.json for recovery status. Then ask if they'd like to change anything.
 
 ---
 
@@ -51,14 +52,15 @@ Update `minMinutesBetweenBreaks` in config.json. Confirm the change.
 ## If $ARGUMENTS contains "leaderboard on"
 
 1. Ask them to pick a username (2-24 chars, letters/numbers/underscores)
-2. Register:
+2. Ask for a recovery passphrase (at least 8 chars, or "skip")
+3. Register:
    ```bash
    curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/register" \
      -H "Content-Type: application/json" \
-     -d '{"username":"USERNAME"}'
+     -d '{"username":"USERNAME","passphrase":"PASSPHRASE_OR_OMIT_IF_SKIPPED"}'
    ```
-   - 201 → success. Save `username`, `secret_token` (from response), and `"leaderboard": true` to config.json.
-   - 409 → username taken, ask for another
+   - 201 → success. Save `username`, `secret_token` (from response), `"leaderboard": true`, and `"has_passphrase": true/false` to config.json.
+   - 409 → username taken — suggest `/clawdbod:recover` if it's theirs, otherwise ask for another
    - 429 → rate limited, try later
 3. If they already have username + secret_token in config.json (re-opting in), use opt-in instead:
    ```bash
@@ -101,6 +103,22 @@ Update `minMinutesBetweenBreaks` in config.json. Confirm the change.
      -d '{"username":"USERNAME","secret_token":"TOKEN","height_inches":70,"weight_lbs":175,"age":30,"gender":"male"}'
    ```
 4. Confirm what was saved. Mention this enables calorie estimates. Profile data is never shown publicly.
+
+---
+
+## If $ARGUMENTS contains "passphrase"
+
+1. They must have `username` and `secret_token` in config.json. If not, tell them to run `/clawdbod:setup` first.
+2. Ask for a passphrase (at least 8 characters).
+3. Set it via API:
+   ```bash
+   curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/set-passphrase" \
+     -H "Content-Type: application/json" \
+     -d '{"username":"USERNAME","secret_token":"TOKEN","passphrase":"PASSPHRASE"}'
+   ```
+   - 200 → Set `"has_passphrase": true` in config.json. Confirm: "Recovery passphrase set. You can use `/clawdbod:recover` to reclaim your account if you ever lose your config."
+   - Any error → show a helpful message.
+4. If they already have a passphrase (`has_passphrase: true`), warn them this will replace their existing one.
 
 ---
 
