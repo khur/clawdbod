@@ -67,6 +67,7 @@ claude --plugin-dir ./clawdbod
 | `/clawdbod:setup` | Guided onboarding — username, leaderboard, profile |
 | `/clawdbod:config` | View/change settings |
 | `/clawdbod:config profile` | Set height, weight, age for calorie tracking |
+| `/clawdbod:config passphrase` | Set/change recovery passphrase |
 | `/clawdbod:config prompts 12` | Change break frequency |
 | `/clawdbod:config minutes 30` | Change cooldown between breaks |
 | `/clawdbod:config leaderboard on/off` | Enable/disable leaderboard |
