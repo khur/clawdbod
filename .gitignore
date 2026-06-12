@@ -1,5 +1,4 @@
-.DS_Store
-.claude/settings.local.json
-node_modules/
 config.json
 pending-sync.json
+.DS_Store
+node_modules/
