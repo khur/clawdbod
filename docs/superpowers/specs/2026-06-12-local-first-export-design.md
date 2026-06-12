@@ -23,15 +23,23 @@ Decisions made during brainstorming:
 ## 1. Data & storage
 
 All mutable data moves out of the plugin root (wiped on every plugin update —
-the reason the `recover` command had to exist) into the persistent plugin data
-directory `${CLAUDE_PLUGIN_DATA}`.
+the reason the `recover` command had to exist) into a fixed user data
+directory: **`~/.claude/clawdbod/`**.
+
+> Amendment (planning): the original design used `${CLAUDE_PLUGIN_DATA}`, but
+> that variable is not reliably present in every execution context (Stop hook
+> process, Bash tool invocations from command files, manual script runs). If
+> contexts resolved different directories, config and the workout log would
+> split. A fixed home-dir path gives the same best-practice outcome — mutable
+> data out of the update-wiped cache — with guaranteed consistency. Scripts
+> accept a `--data-dir` override for tests.
 
 ### Files
 
 | File | Location | Contents |
 |---|---|---|
-| `config.json` | `${CLAUDE_PLUGIN_DATA}/` | `promptsBetweenBreaks`, `minMinutesBetweenBreaks`, optional `profile` object (`height_inches`, `weight_lbs`, `age`, `gender`) |
-| `workouts.jsonl` | `${CLAUDE_PLUGIN_DATA}/` | Append-only log, one JSON object per line |
+| `config.json` | `~/.claude/clawdbod/` | `promptsBetweenBreaks`, `minMinutesBetweenBreaks`, optional `profile` object (`height_inches`, `weight_lbs`, `age`, `gender`) |
+| `workouts.jsonl` | `~/.claude/clawdbod/` | Append-only log, one JSON object per line |
 | `state.json` | OS tmpdir (`clawdbod/`) | Unchanged — ephemeral session cadence state (`promptCount`, `lastBreakAt`, `setupComplete`, `pausedUntil`) |
 
 Dropped config fields: `username`, `secret_token`, `leaderboard`, `has_passphrase`.
@@ -124,7 +132,7 @@ Body changes:
 - Remove the `secret_token` hard rule and the curl logging block; the logging
   step becomes "run `log-workout.mjs` via Bash; if it fails, mention it briefly
   and move on"
-- Config is read from `${CLAUDE_PLUGIN_DATA}/config.json`
+- Config is read from `~/.claude/clawdbod/config.json`
 - Keep: tone rules, never-interrupt/never-nag rules, exercise pool, calorie
   formula and MET table (body stays well under the 500-line guidance), HIIT
   workouts, session summary
@@ -139,13 +147,13 @@ Body changes:
   (command + 5s timeout), per current docs
 - **`hooks/stop-fitness-check.mjs`** — remove curl instructions from the
   break-injection reason text (logging guidance points at the log script);
-  read config from `${CLAUDE_PLUGIN_DATA}/config.json`; keep the
+  read config from `~/.claude/clawdbod/config.json`; keep the
   `stop_hook_active` guard, clamping, pause logic, and the
   silent-failure wrapper
 - **`.claude-plugin/marketplace.json`** — add `"displayName": "ClawdBod"`;
   refresh descriptions to the local-first story
 - **`README.md`** — rewrite: install instructions, command reference, where
-  data lives (`${CLAUDE_PLUGIN_DATA}`), export usage, a "your data never
+  data lives (`~/.claude/clawdbod/`), export usage, a "your data never
   leaves your machine" privacy note, and a changelog section flagging 2.0 as
   breaking (leaderboard removed, no migration)
 - **`config.json` in repo root** — delete from the repo (it's user data, and
