@@ -8,7 +8,8 @@
   "plugins": [
     {
       "name": "clawdbod",
-      "description": "Stay active while coding. Injects fitness breaks into your Claude Code sessions with a global leaderboard.",
+      "displayName": "ClawdBod",
+      "description": "Stay active while coding. Fitness breaks in your Claude Code sessions, with local workout tracking and CSV/JSON export.",
       "author": {
         "name": "FGA Labs"
       },

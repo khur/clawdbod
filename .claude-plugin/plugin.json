@@ -1,6 +1,7 @@
 {
   "name": "clawdbod",
-  "description": "Stay active while coding. Injects fitness breaks into your Claude Code sessions — micro-challenges between prompts and scaled workouts during long-running tasks. Opt into the global leaderboard to compete with other devs.",
+  "version": "2.0.0",
+  "description": "Stay active while coding. Injects fitness breaks into your Claude Code sessions — micro-challenges between prompts and scaled workouts during long-running tasks. All workout data stays on your machine, exportable to CSV or JSON.",
   "author": {
     "name": "FGA Labs"
   },
@@ -13,21 +14,9 @@
     "exercise",
     "breaks",
     "wellness",
-    "leaderboard",
+    "tracking",
+    "export",
+    "local-first",
     "productivity"
-  ],
-  "hooks": {
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node '${CLAUDE_PLUGIN_ROOT}/hooks/stop-fitness-check.mjs'",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  }
+  ]
 }
