@@ -6,7 +6,8 @@
 //
 // Usage:
 //   node log-workout.mjs --exercise "Push-ups" --count 25
-//     [--unit reps|seconds] [--calories 5.0] [--data-dir /override/for/tests]
+//     [--unit reps|seconds] [--calories 5.0|null] [--data-dir /override/for/tests]
+// --calories accepts the literal string "null" (treated as no estimate).
 
 import { appendFileSync, mkdirSync } from "fs";
 import { join } from "path";
@@ -45,6 +46,10 @@ if (!Number.isInteger(count) || count <= 0) {
 }
 if (calories !== null && (!Number.isFinite(calories) || calories < 0)) {
   console.error("error: --calories must be a non-negative number");
+  process.exit(1);
+}
+if (args.unit !== undefined && args.unit !== "reps" && args.unit !== "seconds") {
+  console.error("error: --unit must be reps or seconds");
   process.exit(1);
 }
 

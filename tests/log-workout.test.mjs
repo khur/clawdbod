@@ -60,3 +60,9 @@ test("rejects negative calories", () => {
   const dir = mkdtempSync(join(tmpdir(), "clawdbod-test-"));
   assert.throws(() => run(["--exercise", "Push-ups", "--count", "10", "--calories", "-2", "--data-dir", dir]));
 });
+
+test("rejects unrecognized unit", () => {
+  const dir = mkdtempSync(join(tmpdir(), "clawdbod-test-"));
+  assert.throws(() => run(["--exercise", "Plank hold", "--count", "45", "--unit", "minutes", "--data-dir", dir]));
+  assert.ok(!existsSync(join(dir, "workouts.jsonl")));
+});
