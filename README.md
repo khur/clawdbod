@@ -1,6 +1,8 @@
-# ClawdBod
+# 🏋️ ClawdBod
 
-Stay active while you code. ClawdBod injects exercise breaks into your Claude Code sessions so you don't turn into a mass of prompt-shaped jelly.
+Fitness breaks for [Claude Code](https://code.claude.com). Stay active while you ship.
+
+ClawdBod injects quick exercise challenges into your coding sessions — micro-breaks between prompts and scaled HIIT workouts during long-running tasks. Every rep is logged **locally on your machine** and can be exported to CSV or JSON anytime.
 
 ## Install
 
@@ -10,192 +12,75 @@ Stay active while you code. ClawdBod injects exercise breaks into your Claude Co
 /reload-plugins
 ```
 
-Then run `/clawdbod:setup` to pick a username and join the leaderboard.
-
-### Updating
-
-To pull the latest version:
-
-```
-/plugin marketplace remove khur/clawdbod
-/plugin marketplace add khur/clawdbod
-/plugin install clawdbod
-/reload-plugins
-```
-
-### Uninstalling
-
-```
-/plugin uninstall clawdbod
-/plugin marketplace remove khur/clawdbod
-/reload-plugins
-```
-
-### Local (development)
-
-```bash
-claude --plugin-dir ./clawdbod
-```
-
-## What it does
-
-- **Auto-breaks** — After every ~8 prompts (and at least 20 min apart), Claude pauses to give you a quick exercise challenge
-- **Interactive** — Asks you to do as many reps as you can, you report back, it logs and cheers you on
-- **On-demand** — Run `/clawdbod:fitness` anytime, or `/clawdbod:fitness hiit 5` / `hiit 10` for timed workouts
-- **Global leaderboard** — Opt in to compete with other devs worldwide
-- **Personal history** — Track your reps, calories, and progress over time
-- **Pause/resume** — Mute breaks for deep focus, calls, or demos
-- **Offline resilience** — Failed uploads are saved locally and retried with `/clawdbod:sync`
-- **Calorie tracking** — Set up your profile for estimated calorie burn using MET values
-- **Configurable** — Adjust break frequency, cooldown, leaderboard, and profile on the fly
-
-## Quick Start
-
-```
-/clawdbod:setup          # pick a username, join the leaderboard, set up your profile
-/clawdbod:help           # see all commands
-```
-
-## Commands
-
-| Command | Description |
-|---|---|
-| `/clawdbod:fitness` | Quick random exercise challenge |
-| `/clawdbod:fitness hiit 5` | 5-minute HIIT workout |
-| `/clawdbod:fitness hiit 10` | 10-minute HIIT workout |
-| `/clawdbod:fitness summary` | Session exercise summary |
-| `/clawdbod:setup` | Guided onboarding — username, leaderboard, profile |
-| `/clawdbod:config` | View/change settings |
-| `/clawdbod:config profile` | Set height, weight, age for calorie tracking |
-| `/clawdbod:config passphrase` | Set/change recovery passphrase |
-| `/clawdbod:config prompts 12` | Change break frequency |
-| `/clawdbod:config minutes 30` | Change cooldown between breaks |
-| `/clawdbod:config leaderboard on/off` | Enable/disable leaderboard |
-| `/clawdbod:leaderboard` | All-time rankings |
-| `/clawdbod:leaderboard weekly` | This week's rankings |
-| `/clawdbod:leaderboard pushups` | Rankings for a specific exercise |
-| `/clawdbod:leaderboard pr pushups` | Personal best rankings |
-| `/clawdbod:leaderboard exercises` | List all tracked exercises |
-| `/clawdbod:history` | Your recent reps and stats |
-| `/clawdbod:pause` | Pause breaks indefinitely |
-| `/clawdbod:pause 30` | Pause breaks for 30 minutes |
-| `/clawdbod:resume` | Resume breaks after pausing |
-| `/clawdbod:sync` | Retry any reps that failed to upload |
-| `/clawdbod:status` | Health check — API, auth, config |
-| `/clawdbod:recover` | Recover your account on a new machine |
-| `/clawdbod:help` | Command reference |
-
-## Configuration
-
-Settings resolve in this order: **environment variables > `config.json` > defaults**.
-
-### config.json
-
-Edit `config.json` in the plugin root:
-
-```json
-{
-  "promptsBetweenBreaks": 8,
-  "minMinutesBetweenBreaks": 20
-}
-```
-
-### Environment variables
-
-Override for a single session:
-
-```bash
-CLAWDBOD_PROMPTS=4 CLAWDBOD_MINUTES=10 claude
-```
-
-| Setting | Env Var | Config Key | Default |
-|---|---|---|---|
-| Prompts between breaks | `CLAWDBOD_PROMPTS` | `promptsBetweenBreaks` | `8` |
-| Minutes between breaks | `CLAWDBOD_MINUTES` | `minMinutesBetweenBreaks` | `20` |
-
-## Leaderboard
-
-Compete with other devs who use ClawdBod. Fully opt-in — your data only appears while you're opted in. Opt out and you disappear from the board instantly.
-
-The fastest way to get on the board:
+Then optionally:
 
 ```
 /clawdbod:setup
 ```
 
-Only your username, exercise name, rep count, estimated calories, and timestamp are stored. Profile data (height/weight/age/gender) is used for calorie math but never displayed on the leaderboard.
+to set your break cadence and an optional profile (height/weight/age) for calorie estimates.
 
-## Account Recovery
+## How it works
 
-If you reinstall, switch machines, or lose your config, you can recover your account using the passphrase you set during setup:
+A Stop hook counts your prompts. After a configurable number of prompts (default 8) and a minimum cooldown (default 20 minutes), Claude pauses to throw you a quick exercise challenge — push-ups, squats, planks, one of 54+ exercises. You type how many you did, Claude logs it, and you're back to code. Two or three exchanges, max.
+
+If you're mid-deploy or debugging something hairy, breaks skip themselves. If you say "not now," that's the end of it.
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `/clawdbod:fitness` | Exercise challenge right now (`hiit 5` / `hiit 10` for workouts, `summary` for session stats) |
+| `/clawdbod:setup` | Break cadence + optional profile |
+| `/clawdbod:config` | View/change settings (`prompts 12`, `minutes 30`, `profile`, `reset`) |
+| `/clawdbod:history` | Recent reps and stats |
+| `/clawdbod:export` | Export all workouts to CSV (or `json`) |
+| `/clawdbod:pause` / `/clawdbod:resume` | Mute breaks for focus, calls, demos |
+| `/clawdbod:status` | Local health check |
+| `/clawdbod:help` | Command reference |
+
+## Your data
+
+Everything lives in `~/.claude/clawdbod/` on your machine:
+
+- `config.json` — break cadence and optional profile
+- `workouts.jsonl` — append-only workout log, one JSON entry per set
+
+**Nothing is uploaded anywhere.** No accounts, no tokens, no telemetry. `/clawdbod:export` writes a CSV or JSON file wherever you want it:
 
 ```
-/clawdbod:recover
+/clawdbod:export                 # clawdbod-export-2026-06-12.csv in the current directory
+/clawdbod:export json ~/Desktop/workouts.json
 ```
 
-You'll be asked for your username and passphrase. On success, your credentials and profile are restored automatically.
+CSV columns: `date, time, exercise, unit, count, calories`.
 
-If you didn't set a passphrase during setup, you can add one anytime:
+## Configuration
 
-```
-/clawdbod:config passphrase
-```
-
-## Profile & Calorie Tracking
-
-Optionally add your stats to get estimated calorie burn after each exercise:
-
-```
-/clawdbod:config profile
-```
-
-You'll be asked for height, weight, age, and gender — all optional, skip any you want. Calorie estimates use MET (Metabolic Equivalent of Task) values for each exercise. It's a rough estimate, not medical advice.
-
-## Structure
-
-```
-clawdbod/
-├── .claude-plugin/
-│   ├── plugin.json
-│   └── marketplace.json
-├── commands/
-│   ├── config.md
-│   ├── fitness.md
-│   ├── help.md
-│   ├── history.md
-│   ├── leaderboard.md
-│   ├── pause.md
-│   ├── resume.md
-│   ├── setup.md
-│   ├── recover.md
-│   ├── status.md
-│   └── sync.md
-├── hooks/
-│   └── stop-fitness-check.mjs
-├── skills/
-│   └── clawdbod/
-│       └── SKILL.md
-├── config.json
-└── README.md
-```
-
-## Components
-
-| Component | Type | Description |
+| Setting | Default | Change with |
 |---|---|---|
-| `hooks/stop-fitness-check.mjs` | Stop Hook | Tracks prompts and time, triggers breaks, respects pause state |
-| `skills/clawdbod/SKILL.md` | Skill | Exercise coach persona, workout generator, calorie estimation |
-| `commands/fitness.md` | Command | On-demand exercise breaks and HIIT workouts |
-| `commands/setup.md` | Command | Guided onboarding flow |
-| `commands/config.md` | Command | View and change settings |
-| `commands/leaderboard.md` | Command | Global rankings |
-| `commands/history.md` | Command | Personal exercise history and stats |
-| `commands/pause.md` | Command | Temporarily mute breaks |
-| `commands/resume.md` | Command | Resume breaks after pausing |
-| `commands/sync.md` | Command | Retry failed leaderboard uploads |
-| `commands/status.md` | Command | Diagnostic health check |
-| `commands/recover.md` | Command | Account recovery with passphrase |
-| `commands/help.md` | Command | Command reference |
+| Prompts between breaks | 8 | `/clawdbod:config prompts N` |
+| Min minutes between breaks | 20 | `/clawdbod:config minutes N` |
+| Profile (calorie estimates) | unset | `/clawdbod:config profile` |
+
+Env var overrides for a single session: `CLAWDBOD_PROMPTS`, `CLAWDBOD_MINUTES`.
+
+## Changelog
+
+### 2.0.0
+
+**Breaking:** the global leaderboard is gone, and with it the `leaderboard`, `sync`, and `recover` commands, usernames, tokens, and passphrases. All tracking is now local-only with CSV/JSON export. There is no migration from 1.x server-side history — your local log starts fresh, and your profile needs re-entering via `/clawdbod:setup`. Mutable data moved out of the plugin directory into `~/.claude/clawdbod/`, so it now survives plugin updates.
+
+### 1.x
+
+Leaderboard era. RIP `muscle_dev`'s 1,247 reps.
+
+## Development
+
+```bash
+node --test tests/        # script tests
+claude plugin validate .  # manifest validation
+```
 
 ## License
 
