@@ -10,16 +10,21 @@
  * Returning { "decision": "block", "reason": "..." } prevents Claude
  * from stopping and feeds the reason back as context, which the
  * clawdbod skill then picks up to run the interactive challenge.
+ *
+ * User data (config + workout log) lives in ~/.claude/clawdbod/ so it
+ * survives plugin updates. Session cadence state lives in the OS tmpdir.
  */
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
-import { tmpdir } from "os";
+import { tmpdir, homedir } from "os";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 // Wrap everything — a hook crash should never break the user's session
 try {
   const __dirname = dirname(fileURLToPath(import.meta.url));
+  const PLUGIN_ROOT = join(__dirname, "..");
+  const DATA_DIR = join(homedir(), ".claude", "clawdbod");
   const STATE_DIR = join(tmpdir(), "clawdbod");
   const STATE_FILE = join(STATE_DIR, "state.json");
 
@@ -33,7 +38,7 @@ try {
   const defaults = { promptsBetweenBreaks: 8, minMinutesBetweenBreaks: 20 };
 
   let fileConfig = {};
-  const configPath = join(__dirname, "..", "config.json");
+  const configPath = join(DATA_DIR, "config.json");
   if (existsSync(configPath)) {
     try {
       fileConfig = JSON.parse(readFileSync(configPath, "utf-8"));
@@ -101,11 +106,11 @@ try {
     state.lastBreakAt = 0; // Don't start cooldown — let first break trigger on prompt count alone
     saveState();
 
-    const leaderboardNote = fileConfig.leaderboard
+    const profileNote = fileConfig.profile
       ? ""
       : [
           "",
-          "Also mention they can join the leaderboard and set up their profile in one step:",
+          "Also mention they can set up a profile for calorie estimates:",
           "  /clawdbod:setup",
         ].join("\n");
 
@@ -126,7 +131,7 @@ try {
         "",
         "If they're happy with defaults, just confirm and move on.",
         "Keep it brief — don't interrupt their flow for long.",
-        leaderboardNote,
+        profileNote,
       ].join("\n"),
     };
 
@@ -175,14 +180,13 @@ try {
         "Otherwise, use the clawdbod skill to give the user a quick exercise challenge.",
         "",
         "Quick reference if you need it:",
-        "1. Read ${configPath} for username, secret_token, profile",
+        `1. Read ${configPath} for break settings and profile`,
         "2. Pick a random exercise (push-ups, squats, lunges, plank, burpees, jumping jacks, etc.)",
         "3. Present it with energy and ask how many they got",
-        "4. After they respond: celebrate, estimate calories if profile exists, then log reps:",
-        `   curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/log-reps" \\`,
-        `     -H "Content-Type: application/json" \\`,
-        `     -d '{"username":"USER","secret_token":"TOKEN","exercise":"NAME","count":N,"calories":CAL_OR_NULL}'`,
-        "   If the curl fails, save the rep to ${configPath.replace('config.json', 'pending-sync.json')} so /clawdbod:sync can retry later.",
+        "4. After they respond: celebrate, estimate calories if profile exists, then log the workout locally:",
+        `   node '${join(PLUGIN_ROOT, "scripts", "log-workout.mjs")}' --exercise "NAME" --count N --unit reps|seconds --calories CAL`,
+        "   (omit --calories if no profile; use --unit seconds for time-based holds)",
+        "   If the script fails, mention it briefly and move on — never block the session over logging.",
         "5. Transition back to the coding task",
       ].join("\n"),
     };
