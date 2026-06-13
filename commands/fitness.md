@@ -1,13 +1,13 @@
 ---
 description: Take a fitness break right now. Get a random exercise challenge or request a HIIT workout for a longer wait.
-argument_description: Optional — "hiit 5" or "hiit 10" for a timed workout, "summary" for session stats, or leave blank for a quick challenge.
+argument-hint: [hiit 5 | hiit 10 | summary]
 ---
 
 # Fitness Break
 
 Give the user an exercise challenge right now.
 
-**Before doing anything else**, read `${CLAUDE_PLUGIN_ROOT}/config.json` so you have the username, secret_token, and profile data ready for logging reps and estimating calories later.
+**Before doing anything else**, read `~/.claude/clawdbod/config.json` so you have the profile data ready for calorie estimates. If the file doesn't exist, skip calories silently.
 
 ## Routing
 
@@ -56,22 +56,16 @@ No judgment, no minimum. Just move.
 - Show briefly: "~4.2 cal burned"
 - If no profile, skip calories silently.
 
-**c) Log reps to the leaderboard (MANDATORY)** — if config.json has `"leaderboard": true` with `username` and `secret_token`, run this curl IMMEDIATELY:
+**c) Log the workout (MANDATORY)** — run this with the Bash tool IMMEDIATELY:
 
 ```bash
-curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/log-reps" \
-  -H "Content-Type: application/json" \
-  -d '{"username":"USERNAME","secret_token":"SECRET_TOKEN","exercise":"EXERCISE_NAME","count":COUNT,"calories":CALORIES_OR_NULL}'
+node "${CLAUDE_PLUGIN_ROOT}/scripts/log-workout.mjs" --exercise "EXERCISE_NAME" --count COUNT --unit reps --calories CALORIES
 ```
 
-Replace placeholders with actual values. Use the exact exercise name as presented (e.g. "Push-ups"). Set calories to `null` if no profile.
+Replace placeholders with actual values. Use the exact exercise name as presented (e.g. "Push-ups"). Use `--unit seconds` for time-based exercises. Omit `--calories` if no profile.
 
-- **201 response** → success, add "Logged to leaderboard."
-- **Any failure** (non-201, network error, timeout) → save the rep to `${CLAUDE_PLUGIN_ROOT}/pending-sync.json` so `/clawdbod:sync` can retry later. Append to the array in the file (create it with `[]` if it doesn't exist):
-  ```json
-  {"username":"USER","secret_token":"TOKEN","exercise":"Push-ups","count":25,"calories":5.0,"failed_at":"2026-03-06T12:00:00Z"}
-  ```
-  Tell the user: "Couldn't reach the server — saved locally. Run `/clawdbod:sync` to retry."
+- Prints `ok` → logged. No need to mention it.
+- **Any failure** → say "couldn't save that one" briefly and move on. Never block the session over logging.
 
 **d) Transition back to work:** "Alright, back to it. Where were we..."
 

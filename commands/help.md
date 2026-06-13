@@ -1,6 +1,6 @@
 ---
 description: See all available ClawdBod commands.
-argument_description: No arguments needed.
+argument-hint: ""
 ---
 
 # ClawdBod Help
@@ -16,27 +16,24 @@ Commands:
   /clawdbod:fitness hiit 10      10-minute HIIT workout
   /clawdbod:fitness summary      Session exercise summary
 
-  /clawdbod:setup                Get started — username, leaderboard, profile
+  /clawdbod:setup                Get started — break cadence + profile
   /clawdbod:config               View/change settings
   /clawdbod:config profile       Set height, weight, age for calorie tracking
-  /clawdbod:config passphrase    Set/change recovery passphrase
   /clawdbod:config prompts 12    Change break frequency
   /clawdbod:config minutes 30    Change cooldown between breaks
-  /clawdbod:recover              Recover account with username + passphrase
 
-  /clawdbod:leaderboard          All-time rankings
-  /clawdbod:leaderboard weekly   This week's rankings
-  /clawdbod:leaderboard pushups  Rankings for a specific exercise
-  /clawdbod:leaderboard pr pushups   Personal best rankings
+  /clawdbod:history              Your recent reps and stats
+  /clawdbod:export               Export all workouts to CSV
+  /clawdbod:export json          Export all workouts to JSON
 
   /clawdbod:pause                Pause breaks (indefinitely)
   /clawdbod:pause 30             Pause breaks for 30 minutes
   /clawdbod:resume               Resume breaks after pausing
 
-  /clawdbod:history              Your recent reps and stats
-  /clawdbod:sync                 Retry any reps that failed to upload
   /clawdbod:status               Check if everything is working
   /clawdbod:help                 This help message
+
+All data stays on your machine in ~/.claude/clawdbod/
 ```
 
 Print exactly the block above. Don't add anything else unless the user asks a follow-up question.

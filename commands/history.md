@@ -1,28 +1,29 @@
 ---
-description: View your recent exercise history and stats.
-argument_description: Optional — a number like "50" to see more entries (default 20), or "all" for up to 100.
+description: View your recent exercise history and stats from the local workout log.
+argument-hint: [number of entries | all]
 ---
 
 # ClawdBod History
 
-**First, read `${CLAUDE_PLUGIN_ROOT}/config.json`** for username and secret_token.
+Your workout log lives at `~/.claude/clawdbod/workouts.jsonl` — one JSON object per line:
+`{"ts":"...","exercise":"Push-ups","unit":"reps","count":25,"calories":5.0}`
 
-If no username or secret_token is set, tell them:
-"You need to be on the leaderboard to track history. Run `/clawdbod:setup` to get started."
+## Steps
 
-## Fetching history
-
-```bash
-curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/history" \
-  -H "Content-Type: application/json" \
-  -d '{"username":"USERNAME","secret_token":"SECRET_TOKEN","limit":LIMIT}'
-```
-
-- Default limit: 20
-- If $ARGUMENTS is a number, use that (max 100)
-- If $ARGUMENTS is "all", use 100
-
-If the curl fails or returns an error, say: "Couldn't reach the server right now. Try again in a minute."
+1. Determine how many entries to show:
+   - Default: 20
+   - If $ARGUMENTS is a number, use that (max 100)
+   - If $ARGUMENTS is "all", use 100
+2. Read the log with the Bash tool (newest entries are at the end):
+   ```bash
+   tail -n LIMIT ~/.claude/clawdbod/workouts.jsonl
+   ```
+   For totals, also run:
+   ```bash
+   wc -l < ~/.claude/clawdbod/workouts.jsonl
+   ```
+3. If the file doesn't exist or is empty: "No reps logged yet. Your next fitness break will start tracking automatically." — and stop.
+4. Compute stats from the entries you read plus the line count, then display newest-first.
 
 ## Display
 
@@ -34,16 +35,16 @@ Your ClawdBod Stats
   Total calories:  198.4
 
 Recent Activity
-  Date        Exercise            Reps    Cal
-  Mar 5       Push-ups            25      5.0
-  Mar 5       Air squats          40      5.0
-  Mar 4       Jumping jacks       60      12.1
-  Mar 4       Plank hold          45      2.8
-  Mar 3       Burpees             15      4.8
+  Date        Exercise            Count   Cal
+  Jun 11      Push-ups            25      5.0
+  Jun 11      Air squats          40      6.5
+  Jun 10      Plank hold          45s     2.8
+  Jun 10      Burpees             15      4.8
 ```
 
-- Format dates as short month + day (e.g. "Mar 5")
-- Right-align numbers
-- If calories is null, show "-"
-- If history is empty: "No reps logged yet. Your next fitness break will start tracking automatically."
+- Format dates as short month + day (e.g. "Jun 11")
+- Time-based entries (unit "seconds") show the count with an `s` suffix
+- Right-align numbers; if calories is null, show "-"
+- Total reps counts only rep-based entries; total calories sums what's there
+- If showing fewer entries than the full log, note it: "Showing last 20 of 34 — /clawdbod:export for everything"
 - Keep it clean and scannable

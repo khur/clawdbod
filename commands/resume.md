@@ -1,6 +1,6 @@
 ---
 description: Resume fitness breaks after pausing.
-argument_description: No arguments needed.
+argument-hint: ""
 ---
 
 # Resume Breaks

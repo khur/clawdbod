@@ -1,54 +1,42 @@
 ---
-description: Quick health check — verify your ClawdBod setup is working (registration, leaderboard connection, config).
-argument_description: No arguments needed.
+description: Quick health check — verify your ClawdBod setup is working (config, workout log, break state).
+argument-hint: ""
 ---
 
 # ClawdBod Status
 
-Run a quick diagnostic. **First, read `${CLAUDE_PLUGIN_ROOT}/config.json`.**
+Run a quick local diagnostic. No network involved — everything lives on this machine.
 
-## Steps (run all curl calls in parallel for speed)
+## Steps
 
-1. **Check local config** — from config.json, note:
-   - `promptsBetweenBreaks` and `minMinutesBetweenBreaks`
-   - Whether `leaderboard` is `true`
-   - Whether `username` and `secret_token` are set
+1. **Check config** — read `~/.claude/clawdbod/config.json`:
+   - `promptsBetweenBreaks` and `minMinutesBetweenBreaks` (defaults 8 / 20 if missing)
    - Whether `profile` exists
-
-2. **Check API health**:
+2. **Check the workout log** — with the Bash tool:
    ```bash
-   curl -s "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/status"
+   wc -l < ~/.claude/clawdbod/workouts.jsonl 2>/dev/null || echo 0
    ```
+3. **Check pause state** — read `state.json` in the OS temp dir (`$TMPDIR/clawdbod/state.json` on macOS, `/tmp/clawdbod/state.json` on Linux). If `pausedUntil` is `-1` → paused indefinitely; a future timestamp → paused until then; otherwise active.
 
-3. **Test auth** (only if leaderboard is enabled with username + secret_token):
-   ```bash
-   curl -s -X POST "https://donzfzefsmjiobzqdqok.supabase.co/functions/v1/api/history" \
-     -H "Content-Type: application/json" \
-     -d '{"username":"USERNAME","secret_token":"SECRET_TOKEN","limit":1}'
-   ```
-   200 with data = auth works. 403 = token invalid.
-
-4. **Display results**:
+4. **Display results:**
 
 ```
 ClawdBod Status
 
-  API:          ok (v1.1.0, 3 users)
-  Auth:         ok (logged in as khur)
-  Leaderboard:  on
+  Config:       ok (every 8 prompts, 20 min cooldown)
   Profile:      set
-  Breaks:       every 8 prompts (20 min cooldown)
-  Total reps:   84 across 4 sets
+  Workout log:  84 sets recorded
+  Breaks:       active
+  Data:         ~/.claude/clawdbod/ (local only)
 
 Everything looks good!
 ```
 
-## If something is wrong
+## If something is off
 
-Show what failed with a specific fix:
-- API unreachable → "ClawdBod API isn't responding. Try again in a minute."
-- Auth failed (403) → "Your secret_token doesn't match. Re-register with `/clawdbod:setup`"
-- No username → "Not on the leaderboard yet. Run `/clawdbod:setup` to join."
+- No config file → "Using defaults (8 prompts / 20 min). Run `/clawdbod:setup` to customize."
 - No profile → "No profile set — add one with `/clawdbod:config profile` for calorie tracking."
+- Empty/missing log → "No workouts logged yet. They'll start recording automatically at your next break."
+- Paused → "Breaks are paused. Run `/clawdbod:resume` to get moving again."
 
 Keep it concise — just the facts and action items.
