@@ -1,6 +1,6 @@
 ---
 description: Take a fitness break right now. Get a random exercise challenge or request a HIIT workout for a longer wait.
-argument-hint: [hiit 5 | hiit 10 | summary]
+argument-hint: "[hiit 5 | hiit 10 | summary]"
 ---
 
 # Fitness Break

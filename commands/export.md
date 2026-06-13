@@ -1,6 +1,6 @@
 ---
 description: Export your full workout history to a CSV or JSON file.
-argument-hint: [csv|json] [output path]
+argument-hint: "[csv|json] [output path]"
 ---
 
 # ClawdBod Export

@@ -1,6 +1,6 @@
 ---
 description: View or change ClawdBod settings — break frequency, cooldown, profile, or reset.
-argument-hint: [prompts N | minutes N | profile | reset]
+argument-hint: "[prompts N | minutes N | profile | reset]"
 ---
 
 # ClawdBod Config

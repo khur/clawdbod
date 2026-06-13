@@ -1,6 +1,6 @@
 ---
 description: View your recent exercise history and stats from the local workout log.
-argument-hint: [number of entries | all]
+argument-hint: "[number of entries | all]"
 ---
 
 # ClawdBod History

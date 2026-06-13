@@ -1,6 +1,6 @@
 ---
 description: Pause fitness breaks — for deep focus, calls, or demos. Breaks resume automatically or with /clawdbod:resume.
-argument-hint: [minutes]
+argument-hint: "[minutes]"
 ---
 
 # Pause Breaks
