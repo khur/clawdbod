@@ -73,3 +73,24 @@ test("escapes CSV fields containing commas and quotes", () => {
   const csv = readFileSync(out, "utf-8");
   assert.ok(csv.includes('"Lunges, ""deep"""'));
 });
+
+test("entries with a missing or invalid ts are skipped", () => {
+  const dir = mkdtempSync(join(tmpdir(), "clawdbod-export-"));
+  seed(dir, [
+    JSON.stringify(ENTRIES[0]),
+    JSON.stringify({ exercise: "Burpees", unit: "reps", count: 15, calories: 4.8 }),
+  ]);
+  const out = join(dir, "out.csv");
+  const stdout = run(["--data-dir", dir, "--out", out]);
+  assert.ok(stdout.includes("Exported 1 workouts"));
+  assert.ok(stdout.includes("skipped 1 malformed line"));
+});
+
+test("all-malformed log reports skips instead of an empty message", () => {
+  const dir = mkdtempSync(join(tmpdir(), "clawdbod-export-"));
+  seed(dir, ["{not json", "also not json"]);
+  const out = join(dir, "out.csv");
+  const stdout = run(["--data-dir", dir, "--out", out]);
+  assert.ok(stdout.includes("skipped 2 malformed lines"));
+  assert.ok(!existsSync(out));
+});

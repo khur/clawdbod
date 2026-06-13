@@ -44,7 +44,7 @@ let skipped = 0;
 for (const line of lines) {
   try {
     const e = JSON.parse(line);
-    if (typeof e.exercise === "string" && Number.isInteger(e.count)) workouts.push(e);
+    if (typeof e.exercise === "string" && Number.isInteger(e.count) && e.ts && !Number.isNaN(Date.parse(e.ts))) workouts.push(e);
     else skipped++;
   } catch {
     skipped++;
@@ -52,7 +52,11 @@ for (const line of lines) {
 }
 
 if (workouts.length === 0) {
-  console.log(EMPTY_MSG);
+  console.log(
+    skipped > 0
+      ? `No valid workouts found — skipped ${skipped} malformed line${skipped === 1 ? "" : "s"} in ${logPath}`
+      : EMPTY_MSG
+  );
   process.exit(0);
 }
 
@@ -68,7 +72,7 @@ const localTime = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
 function csvField(value) {
   const s = value === null || value === undefined ? "" : String(value);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
 const outPath = resolve(args.out || `clawdbod-export-${localDate(new Date())}.${format}`);
