@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, existsSync } from "node:fs";
+import { mkdtempSync, readFileSync, existsSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,7 +15,7 @@ function run(args, opts = {}) {
 test("appends a valid reps entry", () => {
   const dir = mkdtempSync(join(tmpdir(), "clawdbod-test-"));
   const out = run(["--exercise", "Push-ups", "--count", "25", "--calories", "5.0", "--data-dir", dir]);
-  assert.equal(out.trim(), "ok");
+  assert.equal(out.trim(), "ok ~5 cal");
   const lines = readFileSync(join(dir, "workouts.jsonl"), "utf-8").trim().split("\n");
   assert.equal(lines.length, 1);
   const entry = JSON.parse(lines[0]);
@@ -65,4 +65,30 @@ test("rejects unrecognized unit", () => {
   const dir = mkdtempSync(join(tmpdir(), "clawdbod-test-"));
   assert.throws(() => run(["--exercise", "Plank hold", "--count", "45", "--unit", "minutes", "--data-dir", dir]));
   assert.ok(!existsSync(join(dir, "workouts.jsonl")));
+});
+
+test("auto-estimates calories from profile when --calories is omitted", () => {
+  const dir = mkdtempSync(join(tmpdir(), "clawdbod-test-"));
+  writeFileSync(join(dir, "config.json"), JSON.stringify({ profile: { weight_lbs: 200 } }));
+  const out = run(["--exercise", "Push-ups", "--count", "25", "--data-dir", dir]);
+  assert.equal(out.trim(), "ok ~15.1 cal");
+  const entry = JSON.parse(readFileSync(join(dir, "workouts.jsonl"), "utf-8").trim());
+  assert.equal(entry.calories, 15.1);
+});
+
+test("explicit --calories overrides the profile estimate; 'null' disables it", () => {
+  const dir = mkdtempSync(join(tmpdir(), "clawdbod-test-"));
+  writeFileSync(join(dir, "config.json"), JSON.stringify({ profile: { weight_lbs: 200 } }));
+  run(["--exercise", "Push-ups", "--count", "25", "--calories", "9.9", "--data-dir", dir]);
+  run(["--exercise", "Push-ups", "--count", "25", "--calories", "null", "--data-dir", dir]);
+  const [a, b] = readFileSync(join(dir, "workouts.jsonl"), "utf-8").trim().split("\n").map((l) => JSON.parse(l));
+  assert.equal(a.calories, 9.9);
+  assert.equal(b.calories, null);
+});
+
+test("no profile → calories null and plain ok", () => {
+  const dir = mkdtempSync(join(tmpdir(), "clawdbod-test-"));
+  const out = run(["--exercise", "Push-ups", "--count", "25", "--data-dir", dir]);
+  assert.equal(out.trim(), "ok");
+  assert.equal(JSON.parse(readFileSync(join(dir, "workouts.jsonl"), "utf-8").trim()).calories, null);
 });

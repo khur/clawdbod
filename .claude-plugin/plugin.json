@@ -1,6 +1,6 @@
 {
   "name": "clawdbod",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Stay active while coding. Injects fitness breaks into your Claude Code sessions — micro-challenges between prompts and scaled workouts during long-running tasks. All workout data stays on your machine, exportable to CSV or JSON.",
   "author": {
     "name": "FGA Labs"

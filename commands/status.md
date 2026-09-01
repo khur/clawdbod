@@ -5,38 +5,18 @@ argument-hint: ""
 
 # ClawdBod Status
 
-Run a quick local diagnostic. No network involved — everything lives on this machine.
+Run with the Bash tool and print the output verbatim inside a code block:
 
-## Steps
-
-1. **Check config** — read `~/.claude/clawdbod/config.json`:
-   - `promptsBetweenBreaks` and `minMinutesBetweenBreaks` (defaults 8 / 20 if missing)
-   - Whether `profile` exists
-2. **Check the workout log** — with the Bash tool:
-   ```bash
-   wc -l < ~/.claude/clawdbod/workouts.jsonl 2>/dev/null || echo 0
-   ```
-3. **Check pause state** — read `state.json` in the OS temp dir (`$TMPDIR/clawdbod/state.json` on macOS, `/tmp/clawdbod/state.json` on Linux). If `pausedUntil` is `-1` → paused indefinitely; a future timestamp → paused until then; otherwise active.
-
-4. **Display results:**
-
-```
-ClawdBod Status
-
-  Config:       ok (every 8 prompts, 20 min cooldown)
-  Profile:      set
-  Workout log:  84 sets recorded
-  Breaks:       active
-  Data:         ~/.claude/clawdbod/ (local only)
-
-Everything looks good!
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/state.mjs" status
 ```
 
-## If something is off
+Then, based on what it shows, add at most one or two one-line hints:
 
-- No config file → "Using defaults (8 prompts / 20 min). Run `/clawdbod:setup` to customize."
-- No profile → "No profile set — add one with `/clawdbod:config profile` for calorie tracking."
-- Empty/missing log → "No workouts logged yet. They'll start recording automatically at your next break."
-- Paused → "Breaks are paused. Run `/clawdbod:resume` to get moving again."
+- Config says "no config file" → "Run `/clawdbod:setup` to customize."
+- Profile "not set" → "Add one with `/clawdbod:config profile` for calorie estimates."
+- Workout log "none yet" → "Your next break will start recording automatically."
+- Breaks "paused" → "Run `/clawdbod:resume` to get moving again."
+- Everything set and active → "Everything looks good!"
 
-Keep it concise — just the facts and action items.
+No network is involved. Keep it concise.

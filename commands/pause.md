@@ -5,41 +5,16 @@ argument-hint: "[minutes]"
 
 # Pause Breaks
 
-Temporarily stop fitness breaks without changing any config.
-
-Set `pausedUntil` in the state file:
-- If $ARGUMENTS is a number → set `pausedUntil` to `Date.now() + (minutes * 60 * 1000)`
-- If $ARGUMENTS is empty → set `pausedUntil` to `-1` (indefinite — until manually resumed)
-
-Use the Bash tool:
+Run with the Bash tool. If `$ARGUMENTS` is a number, pass it as minutes; otherwise omit it:
 
 ```bash
-node -e "
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const dir = path.join(os.tmpdir(), 'clawdbod');
-const stateFile = path.join(dir, 'state.json');
-if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-const state = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile, 'utf-8')) : { promptCount: 0, lastBreakAt: 0, setupComplete: true };
-state.pausedUntil = PAUSE_VALUE;
-fs.writeFileSync(stateFile, JSON.stringify(state, null, 2));
-console.log('ok');
-"
+node "${CLAUDE_PLUGIN_ROOT}/scripts/state.mjs" pause MINUTES
 ```
-
-Replace `PAUSE_VALUE` with either `-1` (indefinite) or the calculated timestamp.
 
 ## Response
 
-For timed pause:
-```
-Breaks paused for 30 minutes. They'll kick back in automatically, or run /clawdbod:resume.
-```
+- `paused until 3:45 PM` → "Breaks paused until 3:45 PM. They'll kick back in automatically, or run /clawdbod:resume."
+- `paused indefinitely` → "Breaks paused. Run /clawdbod:resume when you're ready to get moving again."
+- `error: ...` → relay the error in one line.
 
-For indefinite pause:
-```
-Breaks paused. Run /clawdbod:resume when you're ready to get moving again.
-```
-
-One line. Don't be preachy about skipping exercise.
+One line. Don't be preachy about skipping exercise. Pause applies to all your Claude Code sessions.

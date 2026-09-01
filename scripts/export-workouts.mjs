@@ -10,9 +10,10 @@
 // Defaults: CSV format, ./clawdbod-export-YYYY-MM-DD.csv in the current
 // working directory.
 
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { writeFileSync } from "fs";
 import { join, resolve } from "path";
-import { homedir } from "os";
+import { dataDir as resolveDataDir } from "./lib/paths.mjs";
+import { readWorkouts, totals as computeTotals, EMPTY_MSG } from "./lib/workouts.mjs";
 
 function parseArgs(argv) {
   const args = {};
@@ -27,44 +28,25 @@ function parseArgs(argv) {
 
 const args = parseArgs(process.argv.slice(2));
 
-const dataDir = args["data-dir"] || join(homedir(), ".claude", "clawdbod");
+const dataDir = resolveDataDir(args["data-dir"]);
 const format = args.format === "json" ? "json" : "csv";
-const logPath = join(dataDir, "workouts.jsonl");
+const { exists, workouts, skipped } = readWorkouts(dataDir);
 
-const EMPTY_MSG = "No workouts logged yet — take a break with /clawdbod:fitness first.";
-
-if (!existsSync(logPath)) {
+if (!exists) {
   console.log(EMPTY_MSG);
   process.exit(0);
-}
-
-const lines = readFileSync(logPath, "utf-8").split("\n").filter((l) => l.trim() !== "");
-const workouts = [];
-let skipped = 0;
-for (const line of lines) {
-  try {
-    const e = JSON.parse(line);
-    if (typeof e.exercise === "string" && Number.isInteger(e.count) && e.ts && !Number.isNaN(Date.parse(e.ts))) workouts.push(e);
-    else skipped++;
-  } catch {
-    skipped++;
-  }
 }
 
 if (workouts.length === 0) {
   console.log(
     skipped > 0
-      ? `No valid workouts found — skipped ${skipped} malformed line${skipped === 1 ? "" : "s"} in ${logPath}`
+      ? `No valid workouts found — skipped ${skipped} malformed line${skipped === 1 ? "" : "s"} in ${join(dataDir, "workouts.jsonl")}`
       : EMPTY_MSG
   );
   process.exit(0);
 }
 
-const totals = {
-  sets: workouts.length,
-  reps: workouts.filter((e) => e.unit !== "seconds").reduce((sum, e) => sum + e.count, 0),
-  calories: Math.round(workouts.reduce((sum, e) => sum + (e.calories ?? 0), 0) * 10) / 10,
-};
+const totals = computeTotals(workouts);
 
 const pad = (n) => String(n).padStart(2, "0");
 const localDate = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;

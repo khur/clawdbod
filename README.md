@@ -2,7 +2,7 @@
 
 Fitness breaks for [Claude Code](https://code.claude.com). Stay active while you ship.
 
-ClawdBod injects quick exercise challenges into your coding sessions — micro-breaks between prompts and scaled HIIT workouts during long-running tasks. Every rep is logged **locally on your machine** and can be exported to CSV or JSON anytime.
+ClawdBod injects quick exercise challenges into your coding sessions — micro-breaks between prompts and HIIT workouts on demand for long waits. Every rep is logged **locally on your machine** and can be exported to CSV or JSON anytime.
 
 ## Install
 
@@ -26,6 +26,8 @@ A Stop hook counts your prompts. After a configurable number of prompts (default
 
 If you're mid-deploy or debugging something hairy, breaks skip themselves. If you say "not now," that's the end of it.
 
+Break timing is tracked per Claude Code session, so parallel terminals and subagents don't steal each other's breaks. Pausing applies everywhere.
+
 ## Commands
 
 | Command | What it does |
@@ -45,6 +47,8 @@ Everything lives in `~/.claude/clawdbod/` on your machine:
 
 - `config.json` — break cadence and optional profile
 - `workouts.jsonl` — append-only workout log, one JSON entry per set
+- `state.json` — onboarding flag and pause state
+- `sessions/` — per-session prompt counters (auto-pruned after 7 days)
 
 **Nothing is uploaded anywhere.** No accounts, no tokens, no telemetry. `/clawdbod:export` writes a CSV or JSON file wherever you want it:
 
@@ -67,6 +71,15 @@ Env var overrides for a single session: `CLAWDBOD_PROMPTS`, `CLAWDBOD_MINUTES`.
 
 ## Changelog
 
+### 2.1.0
+
+- Break cadence is tracked **per session** under `~/.claude/clawdbod/sessions/` instead of a shared file in the OS temp dir. Parallel sessions no longer share a counter, and onboarding no longer re-fires after a reboot.
+- Calories, totals, and history tables are computed by scripts (`log-workout.mjs`, `stats.mjs`), not by the model. Numbers are now consistent across `/fitness summary`, `/history`, and `/export`.
+- `/pause`, `/resume`, and `/status` are backed by `scripts/state.mjs`.
+- Exercise pool and MET table are defined once; a test guards them against drift.
+- Hook reads stdin portably (works on Windows).
+- Docs: fixed the test command; removed the claim that workouts trigger automatically during long-running tasks (use `/clawdbod:fitness hiit 5` while you wait).
+
 ### 2.0.0
 
 **Breaking:** the global leaderboard is gone, and with it the `leaderboard`, `sync`, and `recover` commands, usernames, tokens, and passphrases. All tracking is now local-only with CSV/JSON export. There is no migration from 1.x server-side history — your local log starts fresh, and your profile needs re-entering via `/clawdbod:setup`. Mutable data moved out of the plugin directory into `~/.claude/clawdbod/`, so it now survives plugin updates.
@@ -75,10 +88,14 @@ Env var overrides for a single session: `CLAWDBOD_PROMPTS`, `CLAWDBOD_MINUTES`.
 
 Leaderboard era. RIP `muscle_dev`'s 1,247 reps.
 
+## Roadmap
+
+- **"While you wait" workouts.** When a prompt fans out to several subagents or a long build, offer a timed exercise up front instead of waiting for the next Stop. Needs a trigger on tool dispatch and a way to size the workout to the expected wait.
+
 ## Development
 
 ```bash
-node --test tests/        # script tests
+node --test               # all tests (Node 22+)
 claude plugin validate .  # manifest validation
 ```
 
