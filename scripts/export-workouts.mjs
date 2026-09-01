@@ -12,7 +12,7 @@
 
 import { writeFileSync } from "fs";
 import { join, resolve } from "path";
-import { homedir } from "os";
+import { dataDir as resolveDataDir } from "./lib/paths.mjs";
 import { readWorkouts, totals as computeTotals, EMPTY_MSG } from "./lib/workouts.mjs";
 
 function parseArgs(argv) {
@@ -28,7 +28,7 @@ function parseArgs(argv) {
 
 const args = parseArgs(process.argv.slice(2));
 
-const dataDir = args["data-dir"] || join(homedir(), ".claude", "clawdbod");
+const dataDir = resolveDataDir(args["data-dir"]);
 const format = args.format === "json" ? "json" : "csv";
 const { exists, workouts, skipped } = readWorkouts(dataDir);
 

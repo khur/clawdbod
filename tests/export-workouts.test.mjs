@@ -94,3 +94,11 @@ test("all-malformed log reports skips instead of an empty message", () => {
   assert.ok(stdout.includes("skipped 2 malformed lines"));
   assert.ok(!existsSync(out));
 });
+
+test("honours CLAWDBOD_DATA_DIR when --data-dir is omitted", () => {
+  const dir = mkdtempSync(join(tmpdir(), "clawdbod-test-"));
+  writeFileSync(join(dir, "workouts.jsonl"), JSON.stringify({ ts: "2026-06-12T09:00:00.000Z", exercise: "Push-ups", unit: "reps", count: 25, calories: 5 }) + "\n");
+  const out = join(dir, "env.csv");
+  execFileSync("node", [SCRIPT, "--out", out], { encoding: "utf-8", env: { ...process.env, CLAWDBOD_DATA_DIR: dir } });
+  assert.match(readFileSync(out, "utf-8"), /Push-ups/);
+});
