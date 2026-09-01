@@ -23,13 +23,9 @@ Use this skill when:
 - The user runs `/clawdbod:fitness` manually
 - The user asks for a workout or exercise break
 
-## Critical: Read config first
+## Config
 
-**Before every fitness break**, read `~/.claude/clawdbod/config.json` to get:
-- `promptsBetweenBreaks` and `minMinutesBetweenBreaks` (break cadence)
-- `profile.weight_lbs` (needed for calorie estimation)
-
-If the file doesn't exist, that's fine — use defaults (8 prompts, 20 minutes) and skip calorie estimates.
+Break cadence and the optional profile live in `~/.claude/clawdbod/config.json`. You do **not** need to read it for a normal break — the logging script reads the profile itself and estimates calories. Only read it when the user asks about their settings or during setup.
 
 ## First-run setup
 
@@ -81,24 +77,17 @@ Or just start coding — I'll nudge you when it's time to move.
 
    **a) Celebrate** — be genuine, not corny. Encouraging if low, impressed if high.
 
-   **b) Estimate calories** (only if config.json has `profile.weight_lbs`):
-   - Formula: `calories = MET × (weight_lbs × 0.4536) × duration_hours`
-   - Rep-based: `duration_hours = (reps × 3) / 3600`
-   - Time-based: `duration_hours = seconds / 3600`
-   - Show briefly: "~4.2 cal burned"
-   - No profile? Skip silently. Don't prompt them to set one.
-
-   **c) Log the workout (MANDATORY)** — run this NOW with the Bash tool:
+   **b) Log the workout (MANDATORY)** — run this NOW with the Bash tool:
    ```bash
-   node "${CLAUDE_PLUGIN_ROOT}/scripts/log-workout.mjs" --exercise "EXERCISE_NAME" --count COUNT --unit reps --calories CALORIES
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/log-workout.mjs" --exercise "EXERCISE_NAME" --count COUNT --unit reps
    ```
    - Use the exact exercise name as presented (e.g. "Push-ups")
    - Use `--unit seconds` for time-based exercises (planks, holds, wall sits)
-   - Omit `--calories` entirely if no profile
-   - Prints `ok` on success — no need to mention logging unless asked
+   - Do **not** pass `--calories` — the script estimates them from the profile
+   - It prints `ok` or `ok ~4.2 cal`. If calories are present, mention them briefly ("~4 cal"). If not, say nothing about calories and don't prompt for a profile.
    - **If it fails**, say "couldn't save that one" briefly and move on. Never block the session over logging.
 
-   **d) Transition back:** "Alright, back to it. Where were we..."
+   **c) Transition back:** "Alright, back to it. Where were we..."
 
 ### Scaled workout (for long waits)
 
@@ -119,24 +108,8 @@ When Claude is about to run a long task (big test suite, complex build, deployme
 
 ## Tracking
 
-Every logged set lands in `~/.claude/clawdbod/workouts.jsonl`. If the user asks for a summary:
-- Total breaks taken this session
-- Exercises done with rep counts
-- Total volume (e.g., "42 push-ups, 30 squats, 60 jumping jacks")
-
-For full history, point them at `/clawdbod:history`. To get their data out as a file, `/clawdbod:export` writes CSV or JSON.
-
-## Calorie estimation — MET values
-
-| Exercise | MET |
-|---|---|
-| Push-ups (all variations), Burpees, Squat thrusts, Jumping jacks, Mountain climbers, High knees, Fast feet, Skaters, Tricep dips, Pike push-ups, Commandos, Wrist push-ups | 8.0 |
-| Step-ups, Inchworms | 6.0 |
-| Air squats, Sumo squats, Lunges (all variations), Single-leg deadlifts, Reverse lunges | 5.0 |
-| Shoulder taps, Chair squats, Standing march | 4.0 |
-| Plank, Side plank, Bear crawl hold, Wall sit, Hollow body, Superman hold, Bicycle crunches, Flutter kicks, Leg raises, Russian twists, Dead bugs | 3.8 |
-| Calf raises, Glute bridges, Desk push-ups, Wall push-ups | 3.5 |
-| Standing calf raises | 3.0 |
-| Arm circles, Hip circles, Toe touches, Seated leg raises | 2.5 |
-| Neck rolls, Cat-cow stretch, Thoracic rotations, Seated spinal twist | 2.0 |
-| Wrist circles | 1.5 |
+Every logged set lands in `~/.claude/clawdbod/workouts.jsonl`. For a summary of today's breaks, run and print verbatim:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/scripts/stats.mjs" --since today
+```
+For full history point them at `/clawdbod:history`; to get a file, `/clawdbod:export`.
