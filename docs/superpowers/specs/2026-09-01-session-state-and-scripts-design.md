@@ -70,8 +70,10 @@ sessions/<session_id>.json  NEW per-session: { promptCount, lastBreakAt, updated
   cadence values (same rules as the hook today).
 - `state.mjs` — `readGlobalState`, `writeGlobalState`, `isPaused(state, now)`,
   `readSession(dataDir, id)`, `writeSession`, `pruneSessions(dataDir, maxAgeMs)`.
-- `exercises.mjs` — the exercise pool (by category, with unit) and an ordered
-  MET pattern table. `metFor(exerciseName)` matches most-specific pattern
+- `exercises.mjs` — an ordered MET pattern table. The exercise pool itself
+  stays only in `SKILL.md` (the model needs it there to pick from); a test
+  parses the pool out of `SKILL.md` and asserts every name matches a specific
+  MET pattern, which is what guards drift. `metFor(exerciseName)` matches most-specific pattern
   first (e.g. "Wall push-ups" → 3.5 before "push-up" → 8.0); unknown names
   fall back to 4.0. `estimateCalories({ exercise, unit, count, weightLbs })`
   uses the existing formula (3 s per rep; MET × kg × hours), rounded to 0.1.
