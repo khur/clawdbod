@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 
 // Appends one validated workout entry to workouts.jsonl in the ClawdBod data
-// directory (~/.claude/clawdbod). Replaces the old Supabase log-reps call —
-// no network involved.
+// directory (~/.claude/clawdbod). No network involved.
 //
 // Usage:
 //   node log-workout.mjs --exercise "Push-ups" --count 25
 //     [--unit reps|seconds] [--calories 5.0|null] [--data-dir /override/for/tests]
-// --calories accepts the literal string "null" (treated as no estimate).
+//
+// When --calories is omitted, calories are estimated from the profile weight in
+// config.json (same data dir). "--calories null" forces no estimate.
+// Prints "ok" or "ok ~N cal".
 
-import { appendFileSync, mkdirSync } from "fs";
-import { join } from "path";
-import { homedir } from "os";
+import { dataDir as resolveDataDir, readConfig } from "./lib/paths.mjs";
+import { estimateCalories } from "./lib/exercises.mjs";
+import { appendWorkout } from "./lib/workouts.mjs";
 
 function parseArgs(argv) {
   const args = {};
@@ -25,16 +27,11 @@ function parseArgs(argv) {
 }
 
 const args = parseArgs(process.argv.slice(2));
-
-const dataDir = args["data-dir"] || join(homedir(), ".claude", "clawdbod");
+const dataDir = resolveDataDir(args["data-dir"]);
 
 const exercise = (args.exercise || "").trim();
 const count = Number.parseInt(args.count, 10);
 const unit = args.unit === "seconds" ? "seconds" : "reps";
-const calories =
-  args.calories === undefined || args.calories === "null"
-    ? null
-    : Number.parseFloat(args.calories);
 
 if (!exercise) {
   console.error("error: --exercise is required");
@@ -44,16 +41,24 @@ if (!Number.isInteger(count) || count <= 0) {
   console.error("error: --count must be a positive integer");
   process.exit(1);
 }
-if (calories !== null && (!Number.isFinite(calories) || calories < 0)) {
-  console.error("error: --calories must be a non-negative number");
-  process.exit(1);
-}
 if (args.unit !== undefined && args.unit !== "reps" && args.unit !== "seconds") {
   console.error("error: --unit must be reps or seconds");
   process.exit(1);
 }
 
-mkdirSync(dataDir, { recursive: true });
-const entry = { ts: new Date().toISOString(), exercise, unit, count, calories };
-appendFileSync(join(dataDir, "workouts.jsonl"), JSON.stringify(entry) + "\n");
-console.log("ok");
+let calories;
+if (args.calories === undefined) {
+  const { profile } = readConfig(dataDir);
+  calories = estimateCalories({ exercise, unit, count, weightLbs: profile?.weight_lbs });
+} else if (args.calories === "null") {
+  calories = null;
+} else {
+  calories = Number.parseFloat(args.calories);
+  if (!Number.isFinite(calories) || calories < 0) {
+    console.error("error: --calories must be a non-negative number");
+    process.exit(1);
+  }
+}
+
+appendWorkout(dataDir, { ts: new Date().toISOString(), exercise, unit, count, calories });
+console.log(calories === null ? "ok" : `ok ~${calories} cal`);
