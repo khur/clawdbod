@@ -28,7 +28,7 @@ test("isPaused handles indefinite, future, expired, and unset", () => {
 
 test("session state is isolated per id and ids are sanitised", () => {
   const dir = tmp();
-  assert.deepEqual(readSession(dir, "a"), { promptCount: 0, lastBreakAt: 0 });
+  assert.deepEqual(readSession(dir, "a"), { promptCount: 0, lastBreakAt: 0, startedAt: 0 });
   writeSession(dir, "a", { promptCount: 3, lastBreakAt: 5 });
   writeSession(dir, "b", { promptCount: 1, lastBreakAt: 0 });
   assert.equal(readSession(dir, "a").promptCount, 3);

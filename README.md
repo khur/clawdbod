@@ -71,6 +71,16 @@ Env var overrides for a single session: `CLAWDBOD_PROMPTS`, `CLAWDBOD_MINUTES`.
 
 ## Changelog
 
+### 2.1.1
+
+- **Breaks fire again.** `hooks.json` single-quoted `${CLAUDE_PLUGIN_ROOT}`, so on current Claude Code the shell never expanded it and the Stop hook crashed on every run (no breaks, no onboarding). It's double-quoted now, with a test guarding it.
+- No more permission prompt on every break: a `PreToolUse` hook approves only ClawdBod's own `log-workout`, `stats`, and `state` scripts (no shell operators, no other paths). `/clawdbod:export` still asks, since it writes a file.
+- The first break in a session now waits for the minute cooldown, counted from session start; it used to fire on prompt count alone and report a nonsense "minutes since last break".
+- A clock that jumps backwards (sleep/resume, NTP, manual change) no longer silences breaks until it catches up.
+- `/clawdbod:pause` understands units — `45m`, `1h`, `2 hours`. Previously `1h` paused for one minute.
+- HIIT logging records 40 s per completed round instead of rounds × 40 s per exercise, which overstated time and calories up to 5×.
+- The skill no longer offers workouts on its own before builds or deploys; HIIT is on request only.
+
 ### 2.1.0
 
 - Break cadence is tracked **per session** under `~/.claude/clawdbod/sessions/` instead of a shared file in the OS temp dir. Parallel sessions no longer share a counter, and onboarding no longer re-fires after a reboot.
