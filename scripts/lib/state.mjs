@@ -1,7 +1,8 @@
 // Global state (onboarding flag, pause) and per-session cadence state.
 // Layout under the data dir:
 //   state.json                  { onboarded, pausedUntil? }
-//   sessions/<session_id>.json  { promptCount, lastBreakAt, updatedAt }
+//   sessions/<session_id>.json  { promptCount, lastBreakAt, startedAt, updatedAt }
+//   lastBreakAt / startedAt are ms timestamps; 0 means unset.
 
 import { readdirSync, statSync, unlinkSync, existsSync } from "fs";
 import { join } from "path";
@@ -10,7 +11,7 @@ import { readJson, writeJson } from "./paths.mjs";
 export const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const GLOBAL_DEFAULTS = { onboarded: false };
-const SESSION_DEFAULTS = { promptCount: 0, lastBreakAt: 0 };
+const SESSION_DEFAULTS = { promptCount: 0, lastBreakAt: 0, startedAt: 0 };
 
 export function readGlobalState(dir) {
   return { ...GLOBAL_DEFAULTS, ...(readJson(join(dir, "state.json"), {}) ?? {}) };
@@ -20,10 +21,13 @@ export function writeGlobalState(dir, state) {
   writeJson(join(dir, "state.json"), state);
 }
 
+/** Longest pause the CLI allows; anything further out is clock skew, not intent. */
+export const MAX_PAUSE_MS = 7 * 24 * 60 * 60 * 1000;
+
 /** pausedUntil: -1 = indefinite, positive ms timestamp = until then. */
 export function isPaused(state, now = Date.now()) {
   const p = state?.pausedUntil;
-  return p === -1 || (typeof p === "number" && Number.isFinite(p) && p > now);
+  return p === -1 || (typeof p === "number" && Number.isFinite(p) && p > now && p <= now + MAX_PAUSE_MS + 60_000);
 }
 
 function sanitizeId(id) {
@@ -40,6 +44,7 @@ export function readSession(dir, id) {
   return {
     promptCount: Number.isInteger(raw.promptCount) ? raw.promptCount : SESSION_DEFAULTS.promptCount,
     lastBreakAt: Number.isFinite(raw.lastBreakAt) ? raw.lastBreakAt : SESSION_DEFAULTS.lastBreakAt,
+    startedAt: Number.isFinite(raw.startedAt) ? raw.startedAt : SESSION_DEFAULTS.startedAt,
   };
 }
 

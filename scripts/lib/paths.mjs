@@ -1,7 +1,7 @@
 // Data-directory resolution, safe JSON I/O, and config loading shared by the
 // Stop hook and every CLI script.
 
-import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync, unlinkSync } from "fs";
 import { join, dirname } from "path";
 import { homedir } from "os";
 
@@ -27,7 +27,12 @@ export function writeJson(path, value) {
   mkdirSync(dirname(path), { recursive: true });
   const tmp = `${path}.${process.pid}.tmp`;
   writeFileSync(tmp, JSON.stringify(value, null, 2) + "\n");
-  renameSync(tmp, path);
+  try {
+    renameSync(tmp, path);
+  } catch (err) {
+    try { unlinkSync(tmp); } catch { /* already gone */ }
+    throw err;
+  }
 }
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));

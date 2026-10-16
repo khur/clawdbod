@@ -7,8 +7,15 @@ ClawdBod injects quick exercise challenges into your coding sessions — micro-b
 ## Install
 
 ```
+/plugin install clawdbod --marketplace khur/clawdbod
+/reload-plugins
+```
+
+On Claude Code older than 2.1.275, add the marketplace first:
+
+```
 /plugin marketplace add khur/clawdbod
-/plugin install clawdbod
+/plugin install clawdbod@fgalabs-clawdbod
 /reload-plugins
 ```
 
@@ -70,6 +77,19 @@ CSV columns: `date, time, exercise, unit, count, calories`.
 Env var overrides for a single session: `CLAWDBOD_PROMPTS`, `CLAWDBOD_MINUTES`.
 
 ## Changelog
+
+### 2.1.1
+
+- **Breaks fire again.** `hooks.json` single-quoted `${CLAUDE_PLUGIN_ROOT}`, so on current Claude Code the shell never expanded it and the Stop hook crashed on every run (no breaks, no onboarding). It's double-quoted now, with a test guarding it.
+- No more permission prompt on every break: a `PreToolUse` hook approves only ClawdBod's own `log-workout`, `stats`, and `state` scripts (no shell operators, no other paths). `/clawdbod:export` still asks, since it writes a file.
+- The first break in a session now waits for the minute cooldown, counted from session start; it used to fire on prompt count alone and report a nonsense "minutes since last break".
+- A clock that jumps backwards (sleep/resume, NTP, manual change) no longer silences breaks until it catches up.
+- `/clawdbod:pause` understands units — `45m`, `1h`, `2 hours`. Previously `1h` paused for one minute.
+- HIIT logging records 40 s per completed round instead of rounds × 40 s per exercise, which overstated time and calories up to 5×.
+- The skill no longer offers workouts on its own before builds or deploys; HIIT is on request only.
+- `log-workout --count` accepts whole numbers only (`25.7` used to log 25, `1e3` logged 1).
+- `/clawdbod:export` creates a missing output folder and reports write errors in one line instead of a Node stack trace.
+- One-line install: `/plugin install clawdbod --marketplace khur/clawdbod`.
 
 ### 2.1.0
 

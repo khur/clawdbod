@@ -87,11 +87,18 @@ try {
   }
 
   // --- Cadence (per session) -------------------------------------------
+  // The cooldown runs from the last break, or from session start before the
+  // first one. Timestamps in the future mean the clock moved backwards; clamp
+  // them so breaks aren't suppressed until the clock catches up.
+  if (!(session.startedAt > 0) || session.startedAt > now) session.startedAt = now;
+  if (session.lastBreakAt > now) session.lastBreakAt = now;
+  const hadBreak = session.lastBreakAt > 0;
+  const minutesSince = (now - (hadBreak ? session.lastBreakAt : session.startedAt)) / 60000;
+
   session.promptCount += 1;
-  const minutesSinceLastBreak = (now - session.lastBreakAt) / 60000;
   const shouldBreak =
     session.promptCount >= config.promptsBetweenBreaks &&
-    minutesSinceLastBreak >= config.minMinutesBetweenBreaks;
+    minutesSince >= config.minMinutesBetweenBreaks;
 
   if (shouldBreak) {
     session.promptCount = 0;
@@ -106,7 +113,7 @@ try {
   emit([
     "🏋️ FITNESS BREAK TIME!",
     "",
-    `You've been coding for a while (${Math.round(minutesSinceLastBreak)} min since last break).`,
+    `You've been coding for a while (${Math.round(minutesSince)} min ${hadBreak ? "since the last break" : "into this session"}).`,
     "",
     "IMPORTANT: If the user is mid-deploy, debugging an error, resolving a conflict, or in a critical multi-step flow,",
     "skip this break — just say nothing and continue with their task. The coding task always takes priority.",

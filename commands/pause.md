@@ -1,14 +1,14 @@
 ---
 description: Pause fitness breaks — for deep focus, calls, or demos. Breaks resume automatically or with /clawdbod:resume.
-argument-hint: "[minutes]"
+argument-hint: "[30 | 45m | 2h]"
 ---
 
 # Pause Breaks
 
-Run with the Bash tool. If `$ARGUMENTS` is a number, pass it as minutes; otherwise omit it:
+Run with the Bash tool. If `$ARGUMENTS` names a duration, pass it through as one quoted argument (the script understands "30", "45m", "90 min", "1h", "2 hours"); otherwise omit it:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/state.mjs" pause MINUTES
+node "${CLAUDE_PLUGIN_ROOT}/scripts/state.mjs" pause "DURATION"
 ```
 
 ## Response

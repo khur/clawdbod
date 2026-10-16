@@ -10,8 +10,8 @@
 // Defaults: CSV format, ./clawdbod-export-YYYY-MM-DD.csv in the current
 // working directory.
 
-import { writeFileSync } from "fs";
-import { join, resolve } from "path";
+import { writeFileSync, mkdirSync } from "fs";
+import { join, resolve, dirname } from "path";
 import { dataDir as resolveDataDir } from "./lib/paths.mjs";
 import { readWorkouts, totals as computeTotals, EMPTY_MSG } from "./lib/workouts.mjs";
 
@@ -71,7 +71,13 @@ if (format === "csv") {
   content = JSON.stringify({ exported_at: new Date().toISOString(), totals, workouts }, null, 2) + "\n";
 }
 
-writeFileSync(outPath, content);
+try {
+  mkdirSync(dirname(outPath), { recursive: true });
+  writeFileSync(outPath, content);
+} catch (err) {
+  console.error(`error: couldn't write ${outPath} (${err.code ?? err.message})`);
+  process.exit(1);
+}
 const skippedNote = skipped > 0 ? ` (skipped ${skipped} malformed line${skipped === 1 ? "" : "s"})` : "";
 console.log(`Exported ${workouts.length} workouts to ${outPath}${skippedNote}`);
 console.log(`Totals: ${totals.sets} sets, ${totals.reps} reps, ${totals.calories} cal`);

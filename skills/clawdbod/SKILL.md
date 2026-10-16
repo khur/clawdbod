@@ -89,9 +89,9 @@ Or just start coding — I'll nudge you when it's time to move.
 
    **c) Transition back:** "Alright, back to it. Where were we..."
 
-### Scaled workout (for long waits)
+### Scaled workout (on request only)
 
-When Claude is about to run a long task (big test suite, complex build, deployment), offer a scaled workout instead:
+Only when the user asks for one (e.g. `/clawdbod:fitness hiit 5`). Never offer a workout on your own before a build, test run, or deploy. Each round is one exercise for 40 seconds; log each completed round as `--count 40 --unit seconds` (see `/clawdbod:fitness`).
 
 **5-minute HIIT:** 40s on / 20s rest × 5 rounds, 5 different exercises, formatted clearly.
 

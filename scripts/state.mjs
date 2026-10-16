@@ -3,7 +3,8 @@
 // Pause / resume fitness breaks and print a local status report.
 //
 // Usage:
-//   node state.mjs pause [minutes] [--data-dir DIR]   → "paused indefinitely" | "paused until <time>"
+//   node state.mjs pause [duration] [--data-dir DIR]  → "paused indefinitely" | "paused until <time>"
+//     duration: minutes ("30", "45m", "90 min") or hours ("1h", "2 hours"), max 7 days
 //   node state.mjs resume          [--data-dir DIR]   → "resumed" | "not_paused"
 //   node state.mjs status          [--data-dir DIR]   → multi-line status block
 //
@@ -12,7 +13,7 @@
 
 import { homedir } from "os";
 import { dataDir as resolveDataDir, readConfig } from "./lib/paths.mjs";
-import { readGlobalState, writeGlobalState, isPaused } from "./lib/state.mjs";
+import { readGlobalState, writeGlobalState, isPaused, MAX_PAUSE_MS } from "./lib/state.mjs";
 import { readWorkouts } from "./lib/workouts.mjs";
 
 const argv = process.argv.slice(2);
@@ -28,15 +29,23 @@ for (let i = 0; i < argv.length; i++) {
 const [cmd, arg] = positional;
 const dataDir = resolveDataDir(dataDirArg);
 
-const USAGE = "usage: state.mjs pause [minutes] | resume | status";
+const USAGE = "usage: state.mjs pause [duration] | resume | status";
+
+/** "30", "45m", "90 min", "1h", "2 hours" → minutes; anything else → null. */
+function parseDuration(text) {
+  const m = /^(\d+)\s*(m|mins?|minutes?|h|hrs?|hours?)?$/i.exec(String(text).trim());
+  if (!m) return null;
+  const n = Number(m[1]) * (m[2] && m[2][0].toLowerCase() === "h" ? 60 : 1);
+  return n > 0 && n * 60000 <= MAX_PAUSE_MS ? n : null;
+}
 const fmtTime = (ms) => new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
 function pause() {
   let until = -1;
   if (arg !== undefined) {
-    const minutes = Number.parseInt(arg, 10);
-    if (!Number.isInteger(minutes) || minutes <= 0 || minutes > 7 * 24 * 60) {
-      console.error("error: minutes must be a positive integer (max 10080)");
+    const minutes = parseDuration(arg);
+    if (minutes === null) {
+      console.error('error: duration must be minutes or hours, like "30", "45m" or "2h" (max 7 days)');
       process.exit(1);
     }
     until = Date.now() + minutes * 60 * 1000;

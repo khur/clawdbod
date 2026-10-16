@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
@@ -101,4 +101,22 @@ test("honours CLAWDBOD_DATA_DIR when --data-dir is omitted", () => {
   const out = join(dir, "env.csv");
   execFileSync("node", [SCRIPT, "--out", out], { encoding: "utf-8", env: { ...process.env, CLAWDBOD_DATA_DIR: dir } });
   assert.match(readFileSync(out, "utf-8"), /Push-ups/);
+});
+
+test("creates a missing output folder instead of crashing", () => {
+  const dir = mkdtempSync(join(tmpdir(), "clawdbod-export-"));
+  seed(dir, ENTRIES.map((e) => JSON.stringify(e)));
+  const out = join(dir, "new", "nested", "out.csv");
+  run(["--data-dir", dir, "--out", out]);
+  assert.equal(readFileSync(out, "utf-8").trim().split("\n").length, 4);
+});
+
+test("an unwritable output path prints one error line, not a stack trace", () => {
+  const dir = mkdtempSync(join(tmpdir(), "clawdbod-export-"));
+  seed(dir, ENTRIES.map((e) => JSON.stringify(e)));
+  writeFileSync(join(dir, "blocker"), "a file, not a folder");
+  const r = spawnSync("node", [SCRIPT, "--data-dir", dir, "--out", join(dir, "blocker", "out.csv")], { encoding: "utf-8" });
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /^error: couldn't write /);
+  assert.doesNotMatch(r.stderr, /\n\s+at /);
 });

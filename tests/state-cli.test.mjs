@@ -27,9 +27,21 @@ test("pause with minutes sets a future timestamp and reports local time", () => 
   assert.ok(until > Date.now() + 29 * 60 * 1000 && until <= Date.now() + 30 * 60 * 1000 + 1000);
 });
 
-test("pause rejects bad minutes", () => {
-  assert.throws(() => run(["pause", "0", "--data-dir", tmp()]), /error: minutes/);
-  assert.throws(() => run(["pause", "abc", "--data-dir", tmp()]), /error: minutes/);
+test("pause rejects bad durations", () => {
+  for (const bad of ["0", "abc", "1.5", "1d", "-5", "30 sec", "99999h"]) {
+    assert.throws(() => run(["pause", bad, "--data-dir", tmp()]), /error: duration/, bad);
+  }
+});
+
+test("pause understands hour and minute units", () => {
+  const cases = { "1h": 60, "2 hours": 120, "90min": 90, "45m": 45, "1hr": 60, "15 minutes": 15 };
+  for (const [arg, minutes] of Object.entries(cases)) {
+    const dir = tmp();
+    run(["pause", arg, "--data-dir", dir]);
+    const until = JSON.parse(readFileSync(join(dir, "state.json"), "utf-8")).pausedUntil;
+    const expected = Date.now() + minutes * 60000;
+    assert.ok(Math.abs(until - expected) < 5000, `${arg}: expected ~${minutes} min`);
+  }
 });
 
 test("status shows defaults when nothing exists", () => {
