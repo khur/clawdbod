@@ -30,15 +30,16 @@ const args = parseArgs(process.argv.slice(2));
 const dataDir = resolveDataDir(args["data-dir"]);
 
 const exercise = (args.exercise || "").trim();
-const count = Number.parseInt(args.count, 10);
+// Whole numbers only — parseInt would quietly turn "25.7" into 25 and "1e3" into 1.
+const count = /^\d+$/.test(String(args.count ?? "").trim()) ? Number(args.count) : NaN;
 const unit = args.unit === "seconds" ? "seconds" : "reps";
 
 if (!exercise) {
   console.error("error: --exercise is required");
   process.exit(1);
 }
-if (!Number.isInteger(count) || count <= 0) {
-  console.error("error: --count must be a positive integer");
+if (!Number.isInteger(count) || count <= 0 || count > 10000) {
+  console.error("error: --count must be a whole number from 1 to 10000");
   process.exit(1);
 }
 if (args.unit !== undefined && args.unit !== "reps" && args.unit !== "seconds") {

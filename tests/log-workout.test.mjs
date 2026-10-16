@@ -53,6 +53,10 @@ test("rejects non-positive or non-numeric count", () => {
   const dir = mkdtempSync(join(tmpdir(), "clawdbod-test-"));
   assert.throws(() => run(["--exercise", "Push-ups", "--count", "0", "--data-dir", dir]));
   assert.throws(() => run(["--exercise", "Push-ups", "--count", "abc", "--data-dir", dir]));
+  // partial numbers used to be silently truncated (25.7 → 25, 1e3 → 1)
+  for (const bad of ["25.7", "1e3", "15reps", "-3", "99999"]) {
+    assert.throws(() => run(["--exercise", "Push-ups", "--count", bad, "--data-dir", dir]), /error: --count/, bad);
+  }
   assert.ok(!existsSync(join(dir, "workouts.jsonl")));
 });
 

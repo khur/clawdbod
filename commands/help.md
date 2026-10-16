@@ -27,7 +27,7 @@ Commands:
   /clawdbod:export json          Export all workouts to JSON
 
   /clawdbod:pause                Pause breaks (indefinitely)
-  /clawdbod:pause 30             Pause breaks for 30 minutes
+  /clawdbod:pause 30 | 2h        Pause breaks for 30 min / 2 hours
   /clawdbod:resume               Resume breaks after pausing
 
   /clawdbod:status               Check if everything is working
